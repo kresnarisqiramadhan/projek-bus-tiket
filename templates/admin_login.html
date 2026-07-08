@@ -3,9 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Admin - BusTicket System</title>
+    <title>Login Admin - PT KRESNA PRIME MOBILITY</title>
     
-    <!-- CSS -->
+    <!-- Global CSS (Desain Sistem) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    
+    <!-- CSS Khusus -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_login.css') }}">
     
     <!-- Font Awesome -->
@@ -15,6 +18,12 @@
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
 </head>
 <body>
+    <ul class="bg-slideshow">
+        <li><span></span></li>
+        <li><span></span></li>
+        <li><span></span></li>
+    </ul>
+
     <div class="login-container">
         <!-- Header Decoration -->
         <div class="header-decoration"></div>
@@ -22,13 +31,10 @@
         <!-- Header -->
         <div class="login-header">
             <div class="logo">
-                <i class="fas fa-user-shield"></i>
+                <img src="{{ url_for('static', filename='img/logo-kresna.jpg') }}" alt="Logo Kresna" style="height: 60px; object-fit: contain;">
             </div>
-            <h2>
-                <i class="fas fa-lock"></i>
-                Admin Login
-            </h2>
-            <p>Akses terbatas untuk administrator sistem</p>
+            <h2>PT KRESNA PRIME MOBILITY</h2>
+            <p>Sistem Manajemen Tiket (Admin)</p>
         </div>
 
         <!-- Form Container -->
@@ -45,7 +51,7 @@
                         Email Admin
                     </label>
                     <div class="input-with-icon">
-                        <input type="email" id="email" name="email" 
+                        <input type="email" id="email" name="email" class="form-control"
                                placeholder="admin@example.com" required>
                         <i class="fas fa-at"></i>
                     </div>
@@ -58,7 +64,7 @@
                         Password
                     </label>
                     <div class="input-with-icon">
-                        <input type="password" id="password" name="password" 
+                        <input type="password" id="password" name="password" class="form-control"
                                placeholder="Masukkan password" required>
                         <i class="fas fa-lock"></i>
                         <button type="button" class="password-toggle" id="togglePassword">

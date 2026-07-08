@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cari Tiket Bus - BusTicket Online</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pembeli_caritiket.css') }}">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-bus"></i>
+                <h1>BusTicket<span>Online</span></h1>
+            </div>
+            
+            <div class="user-info">
+                <div class="welcome-text">
+                    <div class="greeting">Selamat datang,</div>
+                    <div class="user-name">{{ nama }}</div>
+                </div>
+                <a href="{{ url_for('main.logout') }}" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Breadcrumb -->
+        <nav class="breadcrumb">
+            <ul>
+                <li>
+                    <a href="{{ url_for('main.pembeli_dashboard') }}">
+                        <i class="fas fa-home"></i> Dashboard
+                    </a>
+                </li>
+                <li class="separator">/</li>
+                <li class="active">
+                    <i class="fas fa-search"></i> Cari Tiket
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Search Form -->
+        <section class="search-card">
+            <h2><i class="fas fa-search"></i> Cari Tiket Bus</h2>
+            
+            <form id="searchForm" class="search-form">
+                <div class="form-group">
+                    <label for="origin"><i class="fas fa-map-marker-alt"></i> Kota Asal</label>
+                    <select id="origin" name="origin" required>
+                        <option value="">Pilih Kota Asal</option>
+                        <option value="Jakarta">Jakarta</option>
+                        <option value="Bandung">Bandung</option>
+                        <option value="Surabaya">Surabaya</option>
+                        <option value="Yogyakarta">Yogyakarta</option>
+                        <option value="Semarang">Semarang</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="destination"><i class="fas fa-map-marker-alt"></i> Kota Tujuan</label>
+                    <select id="destination" name="destination" required>
+                        <option value="">Pilih Kota Tujuan</option>
+                        <option value="Jakarta">Jakarta</option>
+                        <option value="Bandung">Bandung</option>
+                        <option value="Surabaya">Surabaya</option>
+                        <option value="Yogyakarta">Yogyakarta</option>
+                        <option value="Semarang">Semarang</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="departureDate"><i class="fas fa-calendar-alt"></i> Tanggal</label>
+                    <input type="date" id="departureDate" name="departureDate" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="passengers"><i class="fas fa-users"></i> Penumpang</label>
+                    <select id="passengers" name="passengers">
+                        <option value="1">1 Orang</option>
+                        <option value="2" selected>2 Orang</option>
+                        <option value="3">3 Orang</option>
+                        <option value="4">4 Orang</option>
+                        <option value="5">5 Orang</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="search-btn">
+                    <i class="fas fa-search"></i> Cari Tiket
+                </button>
+            </form>
+            
+            <!-- Armada Perusahaan -->
+            <div class="company-info">
+                <h3><i class="fas fa-bus-alt"></i> Armada Kami</h3>
+                <div class="fleet-grid">
+                    <!-- Data akan diisi oleh JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Results Section -->
+        <section class="results-card">
+            <div class="results-header">
+                <h2><i class="fas fa-bus-alt"></i> Jadwal Tersedia</h2>
+                <div class="results-count" id="resultsCount">Silakan pilih rute terlebih dahulu</div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loading" class="loading">
+                <i class="fas fa-spinner"></i>
+                <h3>Mencari jadwal...</h3>
+                <p>Harap tunggu sebentar</p>
+            </div>
+
+            <!-- No Results State -->
+            <div id="noResults" class="no-results">
+                <i class="fas fa-search"></i>
+                <h3>Belum ada pencarian</h3>
+                <p>Silakan pilih kota asal, tujuan, dan tanggal</p>
+            </div>
+
+            <!-- Results List -->
+            <div id="searchResults" class="bus-list" style="display: none;">
+                <!-- Bus cards akan dimasukkan di sini oleh JavaScript -->
+                <div id="busList"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2024 BusTicket Online - Sistem Pemesanan Tiket Bus</p>
+        <p style="margin-top: 5px; font-size: 0.8rem;">
+            <i class="fas fa-phone"></i> 0812-3456-7890 &nbsp;|&nbsp;
+            <i class="fas fa-envelope"></i> info@busticket.com
+        </p>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/pembeli_caritiket.js') }}"></script>
+</body>
+</html>

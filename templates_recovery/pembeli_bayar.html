@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('main.static', filename='css/pembeli_bayar.css') }}">
+{% endblock %}
+{% block content %}
+<h2>Pembayaran</h2>
+<div class="payment-info">
+    <p>Total Bayar: <strong>Rp 150.000</strong></p>
+    <p>Silakan transfer ke Rekening: 123-456-789 (Bank Bus)</p>
+    <a href="{{ url_for('main.e_tiket') }}" class="btn">Konfirmasi Pembayaran</a>
+</div>
+{% endblock %}

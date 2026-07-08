@@ -1,9 +1,12 @@
+/* ============================================
+   PEMBELI E-TIKET - PREMIUM BLACK & GOLD
+   ============================================ */
+
 /* Reset dan base styles */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 /* CEGAH HORIZONTAL SCROLL */
@@ -13,15 +16,19 @@ html, body {
 }
 
 body {
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    color: #333;
+    background-color: #0a0a0a;
+    background-image: 
+        radial-gradient(circle at 15% 50%, rgba(212, 175, 55, 0.05), transparent 25%),
+        radial-gradient(circle at 85% 30%, rgba(212, 175, 55, 0.05), transparent 25%);
+    color: #f8f9fa;
     line-height: 1.6;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    padding: 30px 20px;
+    font-family: 'Inter', sans-serif;
 }
 
 /* Container utama */
@@ -38,65 +45,102 @@ body {
 }
 
 .header h1 {
-    font-size: 36px;
-    color: #2c3e50;
+    font-size: 2.2rem;
+    color: #d4af37;
     margin-bottom: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 15px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
 }
 
 .header h1 i {
-    color: #3498db;
+    color: #d4af37;
 }
 
 .subtitle {
-    color: #7f8c8d;
-    font-size: 18px;
-    font-weight: 500;
+    color: #aaa;
+    font-size: 1.1rem;
+    font-weight: 400;
 }
 
-/* E-Ticket Card */
+/* E-Ticket Card (The Boarding Pass) */
 .e-ticket-container {
-    background-color: white;
+    background-color: #121212;
     border-radius: 20px;
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
     overflow: hidden;
     margin-bottom: 30px;
-    border: 1px solid #e0e0e0;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    position: relative;
+}
+
+/* Pseudo-elements for the ticket cutout effect */
+.e-ticket-container::before,
+.e-ticket-container::after {
+    content: '';
+    position: absolute;
+    top: 60%;
+    width: 30px;
+    height: 30px;
+    background-color: #0a0a0a;
+    border-radius: 50%;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    z-index: 10;
+}
+
+.e-ticket-container::before {
+    left: -16px;
+    border-right-color: transparent;
+    border-top-color: transparent;
+    transform: rotate(45deg);
+}
+
+.e-ticket-container::after {
+    right: -16px;
+    border-left-color: transparent;
+    border-bottom-color: transparent;
+    transform: rotate(45deg);
 }
 
 /* Ticket Header */
 .ticket-header {
-    background: linear-gradient(135deg, #2c3e50, #4a6491);
+    background: linear-gradient(135deg, #111, #000);
     color: white;
-    padding: 25px 30px;
+    padding: 30px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    border-bottom: 1px dashed rgba(212, 175, 55, 0.4);
 }
 
 .ticket-header-left h2 {
     font-size: 24px;
+    color: #d4af37;
     margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
 }
 
 .ticket-header-left p {
-    opacity: 0.9;
+    color: #888;
     font-size: 16px;
+    letter-spacing: 1px;
 }
 
 .ticket-status {
-    background-color: #27ae60;
-    color: white;
-    padding: 8px 20px;
+    background: linear-gradient(135deg, #d4af37, #b5952f);
+    color: #121212;
+    padding: 8px 25px;
     border-radius: 50px;
-    font-weight: 600;
+    font-weight: 700;
     display: flex;
     align-items: center;
     gap: 8px;
     font-size: 16px;
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
 }
 
 /* Ticket Body */
@@ -113,20 +157,24 @@ body {
 }
 
 .info-card {
-    background-color: #f8f9fa;
+    background-color: #1a1a1a;
     border-radius: 12px;
     padding: 25px;
-    border-left: 4px solid #3498db;
+    border-left: 4px solid #d4af37;
+    border-top: 1px solid #333;
+    border-right: 1px solid #333;
+    border-bottom: 1px solid #333;
     transition: all 0.3s ease;
 }
 
 .info-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    border-color: rgba(212, 175, 55, 0.5);
 }
 
 .info-card h3 {
-    color: #2c3e50;
+    color: #f8f9fa;
     margin-bottom: 20px;
     display: flex;
     align-items: center;
@@ -135,14 +183,14 @@ body {
 }
 
 .info-card h3 i {
-    color: #3498db;
+    color: #d4af37;
 }
 
 .info-item {
     display: flex;
     justify-content: space-between;
     padding: 12px 0;
-    border-bottom: 1px dashed #ddd;
+    border-bottom: 1px dashed #333;
 }
 
 .info-item:last-child {
@@ -150,26 +198,26 @@ body {
 }
 
 .info-label {
-    color: #666;
+    color: #888;
     font-weight: 500;
 }
 
 .info-value {
-    font-weight: 600;
-    color: #2c3e50;
+    font-weight: 700;
+    color: #d4af37;
 }
 
 /* Route Information */
 .route-section {
-    background-color: #f8f9fa;
+    background-color: #161616;
     border-radius: 12px;
     padding: 30px;
     margin-bottom: 40px;
-    border: 1px solid #eaeaea;
+    border: 1px solid #333;
 }
 
 .route-section h3 {
-    color: #2c3e50;
+    color: #f8f9fa;
     margin-bottom: 25px;
     text-align: center;
     font-size: 22px;
@@ -180,7 +228,7 @@ body {
 }
 
 .route-section h3 i {
-    color: #3498db;
+    color: #d4af37;
 }
 
 .route-display {
@@ -196,27 +244,23 @@ body {
     text-align: center;
     position: relative;
     z-index: 1;
-    background-color: white;
+    background-color: #161616;
     padding: 0 10px;
 }
 
 .route-city {
     font-size: 28px;
-    font-weight: 700;
-    color: #2c3e50;
+    font-weight: 800;
+    color: #d4af37;
     margin-bottom: 8px;
-}
-
-.route-time {
-    font-size: 18px;
-    color: #7f8c8d;
-    font-weight: 500;
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
 }
 
 .route-arrow {
-    color: #3498db;
+    color: #d4af37;
     font-size: 36px;
     margin: 0 20px;
+    opacity: 0.8;
 }
 
 .route-line {
@@ -224,21 +268,22 @@ body {
     top: 50%;
     left: 10%;
     right: 10%;
-    height: 3px;
-    background: linear-gradient(90deg, #3498db, #2c3e50);
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #d4af37, transparent);
     z-index: 0;
 }
 
 /* Seat Information */
 .seat-section {
-    background-color: #f8f9fa;
+    background-color: #1a1a1a;
     border-radius: 12px;
     padding: 25px;
     margin-bottom: 40px;
+    border: 1px solid #333;
 }
 
 .seat-section h3 {
-    color: #2c3e50;
+    color: #f8f9fa;
     margin-bottom: 20px;
     display: flex;
     align-items: center;
@@ -247,7 +292,7 @@ body {
 }
 
 .seat-section h3 i {
-    color: #3498db;
+    color: #d4af37;
 }
 
 .seats-display {
@@ -258,41 +303,37 @@ body {
 }
 
 .seat-badge {
-    background-color: #3498db;
-    color: white;
+    background: linear-gradient(135deg, #d4af37, #b5952f);
+    color: #121212;
     padding: 12px 24px;
     border-radius: 8px;
-    font-weight: 700;
+    font-weight: 800;
     font-size: 18px;
     display: flex;
     align-items: center;
     gap: 10px;
     min-width: 80px;
     justify-content: center;
-    box-shadow: 0 4px 10px rgba(52, 152, 219, 0.2);
+    box-shadow: 0 4px 10px rgba(212, 175, 55, 0.2);
     transition: all 0.3s ease;
 }
 
 .seat-badge:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(52, 152, 219, 0.3);
-}
-
-.seat-badge i {
-    font-size: 16px;
+    box-shadow: 0 6px 15px rgba(212, 175, 55, 0.4);
 }
 
 /* Ticket Footer */
 .ticket-footer {
-    background-color: #f8f9fa;
+    background-color: #161616;
     border-radius: 12px;
     padding: 25px;
-    border-top: 3px dashed #ddd;
-    margin-top: 30px;
+    border-top: 2px dashed rgba(212, 175, 55, 0.4);
+    margin-top: 40px; /* Space for the pseudo-element cutouts */
 }
 
 .ticket-footer h3 {
-    color: #2c3e50;
+    color: #f8f9fa;
     margin-bottom: 20px;
     display: flex;
     align-items: center;
@@ -301,7 +342,7 @@ body {
 }
 
 .ticket-footer h3 i {
-    color: #3498db;
+    color: #d4af37;
 }
 
 .booking-info {
@@ -311,41 +352,43 @@ body {
 }
 
 .booking-item {
-    background-color: white;
+    background-color: #1a1a1a;
     padding: 15px;
     border-radius: 8px;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    border: 1px solid #333;
     transition: all 0.3s ease;
 }
 
 .booking-item:hover {
     transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    border-color: #d4af37;
 }
 
 .booking-item .info-label {
     display: block;
     margin-bottom: 5px;
     font-size: 14px;
+    color: #888;
 }
 
 .booking-item .info-value {
     font-size: 18px;
-    color: #2c3e50;
+    color: #d4af37;
+    font-weight: 600;
 }
 
 /* QR Code Section */
 .qr-section {
     text-align: center;
     padding: 30px;
-    background-color: white;
+    background-color: #1a1a1a;
     border-radius: 12px;
     margin-top: 30px;
-    border: 2px dashed #3498db;
+    border: 2px dashed rgba(212, 175, 55, 0.5);
 }
 
 .qr-section h3 {
-    color: #2c3e50;
+    color: #d4af37;
     margin-bottom: 20px;
     font-size: 20px;
 }
@@ -353,31 +396,19 @@ body {
 .qr-code-placeholder {
     width: 200px;
     height: 200px;
-    background-color: #f5f5f5;
+    background-color: #fff;
     border-radius: 10px;
     margin: 0 auto 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: #7f8c8d;
-    border: 1px dashed #ddd;
-    transition: all 0.3s ease;
-}
-
-.qr-code-placeholder:hover {
-    background-color: #f0f8ff;
-    border-color: #3498db;
-}
-
-.qr-code-placeholder i {
-    font-size: 48px;
-    margin-bottom: 15px;
-    color: #3498db;
+    border: 3px solid #d4af37;
+    padding: 10px;
 }
 
 .qr-instructions {
-    color: #666;
+    color: #aaa;
     font-size: 14px;
     margin-top: 15px;
 }
@@ -389,8 +420,6 @@ body {
     gap: 15px;
     justify-content: center;
     margin-top: 30px;
-    /* Fallback untuk browser lama */
-    margin: 30px -7.5px 0;
 }
 
 .btn {
@@ -406,45 +435,38 @@ body {
     transition: all 0.3s ease;
     border: none;
     min-width: 200px;
-    /* Fallback untuk browser lama */
-    margin: 0 7.5px 15px;
-}
-
-.btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
 }
 
 .btn-primary {
-    background-color: #3498db;
-    color: white;
+    background: linear-gradient(135deg, #d4af37, #b5952f);
+    color: #121212;
 }
 
-.btn-primary:hover:not(:disabled) {
-    background-color: #2980b9;
+.btn-primary:hover {
     transform: translateY(-3px);
-    box-shadow: 0 7px 20px rgba(52, 152, 219, 0.3);
+    box-shadow: 0 7px 20px rgba(212, 175, 55, 0.3);
 }
 
 .btn-secondary {
-    background-color: #27ae60;
-    color: white;
+    background-color: #252525;
+    color: #fff;
+    border: 1px solid #444;
 }
 
-.btn-secondary:hover:not(:disabled) {
-    background-color: #219653;
+.btn-secondary:hover {
+    background-color: #333;
+    border-color: #d4af37;
     transform: translateY(-3px);
-    box-shadow: 0 7px 20px rgba(39, 174, 96, 0.3);
 }
 
 .btn-outline {
     background-color: transparent;
-    color: #3498db;
-    border: 2px solid #3498db;
+    color: #d4af37;
+    border: 2px solid #d4af37;
 }
 
-.btn-outline:hover:not(:disabled) {
-    background-color: #f0f8ff;
+.btn-outline:hover {
+    background-color: rgba(212, 175, 55, 0.1);
     transform: translateY(-3px);
 }
 
@@ -455,7 +477,7 @@ body {
     gap: 30px;
     margin-top: 30px;
     padding-top: 20px;
-    border-top: 1px solid #ddd;
+    border-top: 1px solid #333;
     flex-wrap: wrap;
 }
 
@@ -463,7 +485,7 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #3498db;
+    color: #888;
     text-decoration: none;
     font-weight: 500;
     transition: color 0.3s;
@@ -472,16 +494,16 @@ body {
 }
 
 .footer-links a:hover {
-    color: #2980b9;
-    background-color: #f0f8ff;
-    text-decoration: none;
+    color: #d4af37;
+    background-color: #1a1a1a;
 }
 
-/* Styles untuk print */
+/* Styles untuk print (Cetak Kertas - Hemat Tinta) */
 @media print {
     body {
         background: white !important;
         padding: 0;
+        color: #000 !important;
     }
     
     .header, .action-buttons, .footer-links {
@@ -490,64 +512,95 @@ body {
     
     .e-ticket-container {
         box-shadow: none !important;
-        border: 1px solid #333 !important;
+        border: 2px solid #000 !important;
         border-radius: 10px !important;
+        background: white !important;
+    }
+    
+    .e-ticket-container::before,
+    .e-ticket-container::after {
+        display: none !important; /* Hide cutouts when printing */
     }
     
     .ticket-header {
-        background: #2c3e50 !important;
-        background-image: none !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
+        background: white !important;
+        border-bottom: 2px solid #000 !important;
+        color: #000 !important;
+    }
+    
+    .ticket-header-left h2 {
+        color: #000 !important;
+    }
+    
+    .ticket-header-left p {
+        color: #333 !important;
     }
     
     .ticket-status {
-        background: #27ae60 !important;
-        background-image: none !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
+        background: white !important;
+        color: #000 !important;
+        border: 2px solid #000 !important;
+        box-shadow: none !important;
     }
     
-    .btn {
-        display: none !important;
+    .info-card, .route-section, .seat-section, .ticket-footer, .booking-item, .qr-section {
+        background: white !important;
+        border: 1px solid #ccc !important;
+        color: #000 !important;
+    }
+    
+    .info-card h3, .route-section h3, .seat-section h3, .ticket-footer h3, .qr-section h3 {
+        color: #000 !important;
+    }
+    
+    .info-card h3 i, .route-section h3 i, .seat-section h3 i, .ticket-footer h3 i {
+        color: #000 !important;
+    }
+    
+    .info-value, .route-city, .seat-badge, .booking-item .info-value {
+        color: #000 !important;
+    }
+    
+    .seat-badge {
+        background: white !important;
+        border: 2px solid #000 !important;
+        box-shadow: none !important;
+    }
+    
+    .route-arrow {
+        color: #000 !important;
+    }
+    
+    .route-line {
+        background: #000 !important;
+    }
+    
+    .qr-code-placeholder {
+        border: 2px solid #000 !important;
+    }
+    
+    .info-label {
+        color: #555 !important;
+    }
+    
+    .info-item {
+        border-bottom: 1px dashed #ccc !important;
+    }
+    
+    .ticket-footer {
+        border-top: 2px dashed #000 !important;
     }
 }
 
 /* Responsif */
 @media (max-width: 768px) {
-    .header h1 {
-        font-size: 28px;
-    }
-    
-    .ticket-header {
-        flex-direction: column;
-        gap: 15px;
-        text-align: center;
-    }
-    
-    .route-display {
-        flex-direction: column;
-        gap: 30px;
-    }
-    
-    .route-arrow {
-        transform: rotate(90deg);
-        margin: 15px 0;
-    }
-    
-    .route-line {
-        display: none;
-    }
-    
-    .btn {
-        min-width: 100%;
-    }
-    
-    .footer-links {
-        flex-direction: column;
-        gap: 15px;
-        align-items: center;
-    }
+    .header h1 { font-size: 24px; }
+    .ticket-header { flex-direction: column; gap: 15px; text-align: center; }
+    .route-display { flex-direction: column; gap: 30px; }
+    .route-arrow { transform: rotate(90deg); margin: 15px 0; }
+    .route-line { display: none; }
+    .btn { min-width: 100%; }
+    .footer-links { flex-direction: column; gap: 15px; align-items: center; }
 }
 
 /* Animasi */
@@ -558,20 +611,4 @@ body {
 
 .e-ticket-container {
     animation: fadeIn 0.5s ease;
-}
-
-/* Tambahan: Loading spinner untuk AJAX */
-.spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #3498db;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
 }

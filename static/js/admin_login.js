@@ -2,54 +2,31 @@
 // ADMIN LOGIN - JAVASCRIPT
 // ============================================
 
-// Main Initialization
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🔐 Admin Login JS Loaded');
-    
-    // Setup all event listeners
     setupEventListeners();
-    
-    // Check for saved credentials
     checkSavedCredentials();
-    
-    // Check for URL error messages
     checkUrlParams();
-    
-    // Add custom styles
     addCustomStyles();
 });
 
-// ============================================
-// 1. EVENT LISTENERS SETUP
-// ============================================
 function setupEventListeners() {
-    // Password toggle
     const togglePassword = document.getElementById('togglePassword');
-    if (togglePassword) {
-        togglePassword.addEventListener('click', togglePasswordVisibility);
-    }
-    
-    // Form submission
+    if (togglePassword) togglePassword.addEventListener('click', togglePasswordVisibility);
+
     const loginForm = document.getElementById('loginForm');
-    if (loginForm) {
-        loginForm.addEventListener('submit', handleFormSubmit);
-    }
-    
-    // Forgot password
+    if (loginForm) loginForm.addEventListener('submit', handleFormSubmit);
+
     const forgotPassword = document.getElementById('forgotPassword');
-    if (forgotPassword) {
-        forgotPassword.addEventListener('click', handleForgotPassword);
-    }
-    
-    // Input validation on blur
+    if (forgotPassword) forgotPassword.addEventListener('click', handleForgotPassword);
+
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
-    
+
     if (emailInput) {
         emailInput.addEventListener('blur', validateEmail);
         emailInput.addEventListener('input', clearEmailError);
     }
-    
     if (passwordInput) {
         passwordInput.addEventListener('blur', validatePassword);
         passwordInput.addEventListener('input', clearPasswordError);
@@ -57,66 +34,47 @@ function setupEventListeners() {
 }
 
 // ============================================
-// 2. FORM HANDLING
+// FORM HANDLING — submit ke Flask langsung
 // ============================================
 function handleFormSubmit(e) {
     e.preventDefault();
-    
-    // Get form data
+
     const form = e.target;
-    const formData = new FormData(form);
-    const email = formData.get('email');
-    const password = formData.get('password');
-    const remember = formData.get('remember') === 'on';
-    
-    // Validate inputs
-    if (!validateForm(email, password)) {
-        return;
-    }
-    
-    // Show loading
+    const email = form.email.value.trim();
+    const password = form.password.value;
+    const remember = form.remember ? form.remember.checked : false;
+
+    if (!validateForm(email, password)) return;
+
     showLoading(true);
-    
-    // Save credentials if "Remember me" is checked
+
     if (remember) {
         saveCredentials(email);
     } else {
         clearCredentials();
     }
-    
-    // Simulate API call (replace with actual AJAX call)
-    setTimeout(() => {
-        // In production, this would be an actual fetch/AJAX call
-        simulateLogin(email, password);
-    }, 1500);
+
+    // Submit ke Flask — bukan simulasi
+    form.submit();
 }
 
 function validateForm(email, password) {
     let isValid = true;
-    
-    // Validate email
     if (!validateEmailInput(email)) {
         showInputError('email', 'Email tidak valid');
         isValid = false;
     }
-    
-    // Validate password
     if (!validatePasswordInput(password)) {
         showInputError('password', 'Password minimal 6 karakter');
         isValid = false;
     }
-    
     return isValid;
 }
 
-// ============================================
-// 3. VALIDATION FUNCTIONS
-// ============================================
 function validateEmail() {
     const emailInput = document.getElementById('email');
     if (emailInput && emailInput.value.trim()) {
-        const isValid = validateEmailInput(emailInput.value);
-        if (!isValid) {
+        if (!validateEmailInput(emailInput.value)) {
             showInputError('email', 'Format email tidak valid');
             return false;
         }
@@ -127,8 +85,7 @@ function validateEmail() {
 function validatePassword() {
     const passwordInput = document.getElementById('password');
     if (passwordInput && passwordInput.value.trim()) {
-        const isValid = validatePasswordInput(passwordInput.value);
-        if (!isValid) {
+        if (!validatePasswordInput(passwordInput.value)) {
             showInputError('password', 'Password minimal 6 karakter');
             return false;
         }
@@ -137,8 +94,7 @@ function validatePassword() {
 }
 
 function validateEmailInput(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 function validatePasswordInput(password) {
@@ -146,50 +102,39 @@ function validatePasswordInput(password) {
 }
 
 function clearEmailError() {
-    const emailInput = document.getElementById('email');
-    if (emailInput) {
-        emailInput.classList.remove('error');
-        const errorDiv = emailInput.parentElement.querySelector('.input-error');
-        if (errorDiv) {
-            errorDiv.remove();
-        }
+    const el = document.getElementById('email');
+    if (el) {
+        el.classList.remove('error');
+        const err = el.parentElement.querySelector('.input-error');
+        if (err) err.remove();
     }
 }
 
 function clearPasswordError() {
-    const passwordInput = document.getElementById('password');
-    if (passwordInput) {
-        passwordInput.classList.remove('error');
-        const errorDiv = passwordInput.parentElement.querySelector('.input-error');
-        if (errorDiv) {
-            errorDiv.remove();
-        }
+    const el = document.getElementById('password');
+    if (el) {
+        el.classList.remove('error');
+        const err = el.parentElement.querySelector('.input-error');
+        if (err) err.remove();
     }
 }
 
-// ============================================
-// 4. UI FUNCTIONS
-// ============================================
 function togglePasswordVisibility() {
     const passwordInput = document.getElementById('password');
     const toggleIcon = document.getElementById('togglePassword').querySelector('i');
-    
     if (passwordInput.type === 'password') {
         passwordInput.type = 'text';
-        toggleIcon.classList.remove('fa-eye');
-        toggleIcon.classList.add('fa-eye-slash');
-        passwordInput.focus();
+        toggleIcon.classList.replace('fa-eye', 'fa-eye-slash');
     } else {
         passwordInput.type = 'password';
-        toggleIcon.classList.remove('fa-eye-slash');
-        toggleIcon.classList.add('fa-eye');
+        toggleIcon.classList.replace('fa-eye-slash', 'fa-eye');
     }
+    passwordInput.focus();
 }
 
 function showLoading(show) {
     const submitBtn = document.getElementById('submitBtn');
     const buttonText = document.getElementById('buttonText');
-    
     if (show) {
         submitBtn.disabled = true;
         buttonText.innerHTML = '<span class="loading"></span> Memproses...';
@@ -200,95 +145,43 @@ function showLoading(show) {
 }
 
 function showMessage(message, type = 'error') {
-    const messageContainer = document.getElementById('messageContainer');
-    
-    // Clear previous messages
-    messageContainer.innerHTML = '';
-    
-    // Create new message
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `${type}-message`;
-    
-    const icon = type === 'error' ? 'fa-exclamation-circle' :
-                 type === 'success' ? 'fa-check-circle' : 'fa-info-circle';
-    
-    messageDiv.innerHTML = `
-        <i class="fas ${icon}"></i>
-        <span>${message}</span>
-    `;
-    
-    messageContainer.appendChild(messageDiv);
-    
-    // Auto remove after 5 seconds
+    const container = document.getElementById('messageContainer');
+    container.innerHTML = '';
+    const div = document.createElement('div');
+    div.className = `${type}-message`;
+    const icon = type === 'error' ? 'fa-exclamation-circle' : type === 'success' ? 'fa-check-circle' : 'fa-info-circle';
+    div.innerHTML = `<i class="fas ${icon}"></i><span>${message}</span>`;
+    container.appendChild(div);
     if (type !== 'error') {
-        setTimeout(() => {
-            messageDiv.style.opacity = '0';
-            messageDiv.style.transform = 'translateY(-10px)';
-            setTimeout(() => messageDiv.remove(), 300);
-        }, 5000);
+        setTimeout(() => { div.style.opacity = '0'; setTimeout(() => div.remove(), 300); }, 5000);
     }
 }
 
 function showInputError(inputId, message) {
     const input = document.getElementById(inputId);
     if (!input) return;
-    
-    // Add error class
-    input.classList.add('error');
-    input.classList.add('shake');
-    
-    // Remove shake animation after it completes
-    setTimeout(() => {
-        input.classList.remove('shake');
-    }, 500);
-    
-    // Remove existing error message
-    const existingError = input.parentElement.querySelector('.input-error');
-    if (existingError) {
-        existingError.remove();
-    }
-    
-    // Add new error message
+    input.classList.add('error', 'shake');
+    setTimeout(() => input.classList.remove('shake'), 500);
+    const existing = input.parentElement.querySelector('.input-error');
+    if (existing) existing.remove();
     const errorDiv = document.createElement('div');
     errorDiv.className = 'input-error';
-    errorDiv.style.cssText = `
-        color: #d32f2f;
-        font-size: 0.8rem;
-        margin-top: 5px;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-    `;
-    errorDiv.innerHTML = `
-        <i class="fas fa-exclamation-circle"></i>
-        <span>${message}</span>
-    `;
-    
+    errorDiv.style.cssText = 'color:#d32f2f;font-size:0.8rem;margin-top:5px;display:flex;align-items:center;gap:5px;';
+    errorDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i><span>${message}</span>`;
     input.parentElement.appendChild(errorDiv);
 }
 
-// ============================================
-// 5. CREDENTIALS MANAGEMENT
-// ============================================
 function checkSavedCredentials() {
     const savedEmail = localStorage.getItem('admin_email');
     const rememberChecked = localStorage.getItem('admin_remember') === 'true';
-    
     if (savedEmail && rememberChecked) {
         const emailInput = document.getElementById('email');
         const rememberCheckbox = document.getElementById('remember');
-        
-        if (emailInput) {
-            emailInput.value = savedEmail;
-        }
-        
+        if (emailInput) emailInput.value = savedEmail;
         if (rememberCheckbox) {
             rememberCheckbox.checked = true;
-            // Auto focus password field
             const passwordInput = document.getElementById('password');
-            if (passwordInput) {
-                setTimeout(() => passwordInput.focus(), 100);
-            }
+            if (passwordInput) setTimeout(() => passwordInput.focus(), 100);
         }
     }
 }
@@ -303,172 +196,38 @@ function clearCredentials() {
     localStorage.removeItem('admin_remember');
 }
 
-// ============================================
-// 6. FORGOT PASSWORD HANDLING
-// ============================================
 function handleForgotPassword(e) {
     e.preventDefault();
-    
     const emailInput = document.getElementById('email');
     const email = emailInput ? emailInput.value.trim() : '';
-    
-    if (!email) {
-        showMessage('Masukkan email untuk reset password', 'error');
-        emailInput.focus();
-        return;
-    }
-    
-    if (!validateEmailInput(email)) {
-        showMessage('Format email tidak valid', 'error');
-        return;
-    }
-    
-    // Show confirmation
+    if (!email) { showMessage('Masukkan email untuk reset password', 'error'); emailInput.focus(); return; }
+    if (!validateEmailInput(email)) { showMessage('Format email tidak valid', 'error'); return; }
     if (confirm(`Kirim reset password ke ${email}?`)) {
-        showLoading(true);
-        
-        // Simulate API call
-        setTimeout(() => {
-            showLoading(false);
-            showMessage(`Instruksi reset password telah dikirim ke ${email}`, 'success');
-            
-            // Log to console (for debugging)
-            console.log(`Reset password requested for: ${email}`);
-        }, 2000);
+        showMessage('Hubungi administrator sistem untuk reset password.', 'info');
     }
 }
 
-// ============================================
-// 7. URL PARAMETERS HANDLING
-// ============================================
 function checkUrlParams() {
     const urlParams = new URLSearchParams(window.location.search);
-    
-    // Check for error parameter
     const error = urlParams.get('error');
     if (error) {
-        const errorMessages = {
-            'invalid': 'Email atau password tidak valid',
-            'session': 'Sesi telah berakhir, silakan login kembali',
-            'unauthorized': 'Akses tidak diizinkan',
-            'required': 'Email dan password diperlukan'
-        };
-        
-        const message = errorMessages[error] || 'Terjadi kesalahan saat login';
-        showMessage(message, 'error');
-        
-        // Clear error from URL
-        const newUrl = window.location.pathname;
-        window.history.replaceState({}, document.title, newUrl);
+        const msgs = { invalid: 'Email atau password tidak valid', session: 'Sesi telah berakhir', unauthorized: 'Akses tidak diizinkan', required: 'Email dan password diperlukan' };
+        showMessage(msgs[error] || 'Terjadi kesalahan saat login', 'error');
+        window.history.replaceState({}, document.title, window.location.pathname);
     }
-    
-    // Check for success parameter
-    const success = urlParams.get('success');
-    if (success === 'logout') {
+    if (urlParams.get('success') === 'logout') {
         showMessage('Anda telah logout', 'success');
-        
-        // Clear success from URL
-        const newUrl = window.location.pathname;
-        window.history.replaceState({}, document.title, newUrl);
+        window.history.replaceState({}, document.title, window.location.pathname);
     }
-}
+}   
 
-// ============================================
-// 8. SIMULATION FUNCTIONS (REPLACE WITH REAL API)
-// ============================================
-function simulateLogin(email, password) {
-    // This is a simulation - replace with actual API call
-    
-    // Mock credentials (in production, this would be server-side validation)
-    const mockAdminEmail = 'admin@busticket.com';
-    const mockAdminPassword = 'admin123';
-    
-    if (email === mockAdminEmail && password === mockAdminPassword) {
-        // Success
-        showMessage('Login berhasil! Mengalihkan...', 'success');
-        
-        // Simulate redirect
-        setTimeout(() => {
-            // In production, this would be form submission or redirect
-            window.location.href = '/admin/dashboard';
-        }, 2000);
-    } else {
-        // Error
-        showLoading(false);
-        showMessage('Email atau password salah', 'error');
-        
-        // Shake form for visual feedback
-        const form = document.getElementById('loginForm');
-        form.classList.add('shake');
-        setTimeout(() => form.classList.remove('shake'), 500);
-    }
-}
-
-// ============================================
-// 9. CUSTOM STYLES
-// ============================================
 function addCustomStyles() {
     const style = document.createElement('style');
-    style.textContent = `
-        .input-error {
-            animation: slideDown 0.3s ease;
-        }
-        
-        .error {
-            border-color: #d32f2f !important;
-            background: #fff5f5 !important;
-        }
-        
-        .error:focus {
-            box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.1) !important;
-        }
-        
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-            background: #a1a1a1;
-        }
-        
-        /* Focus styles */
-        input:focus, button:focus {
-            outline: 2px solid #667eea;
-            outline-offset: 2px;
-        }
-        
-        /* Print styles */
-        @media print {
-            .login-container {
-                box-shadow: none;
-                border: 1px solid #ccc;
-            }
-            
-            .submit-button, .password-toggle, .back-home {
-                display: none !important;
-            }
-        }
-    `;
+    style.textContent = `.error{border-color:#d32f2f!important;background:#fff5f5!important}.error:focus{box-shadow:0 0 0 3px rgba(211,47,47,.1)!important}`;
     document.head.appendChild(style);
 }
 
-// ============================================
-// 10. GLOBAL EXPORTS
-// ============================================
 window.validateEmail = validateEmail;
 window.validatePassword = validatePassword;
 window.togglePasswordVisibility = togglePasswordVisibility;
 window.handleForgotPassword = handleForgotPassword;
-
-console.log('🔐 Admin Login JS siap digunakan!');

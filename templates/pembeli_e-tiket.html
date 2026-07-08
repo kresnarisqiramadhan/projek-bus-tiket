@@ -30,12 +30,12 @@
             <!-- Ticket Header -->
             <div class="ticket-header">
                 <div class="ticket-header-left">
-                    <h2>BusTicket Online</h2>
-                    <p>Tiket Elektronik - Bus Travel</p>
+                    <h2>PT Kresna Prime Mobility</h2>
+                    <p>E-Tiket Resmi - Bus Travel Premium</p>
                 </div>
                 <div class="ticket-status">
                     <i class="fas fa-check-circle"></i>
-                    <span>{{ status or "Lunas" }}</span>
+                    <span>{{ bayar.status }}</span>
                 </div>
             </div>
 
@@ -50,19 +50,25 @@
                         </h3>
                         <div class="info-item">
                             <span class="info-label">Nama Pembeli:</span>
-                            <span class="info-value" id="passenger-name">{{ nama or "Nama Pembeli" }}</span>
+                            <span class="info-value" id="passenger-name">{{ current_user.nama }}</span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">ID Pemesanan:</span>
-                            <span class="info-value" id="booking-id">BOOK-001234</span>
+                            <span class="info-value" id="booking-id">{{ bayar.booking_id or bayar.transaction_id }}</span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Tanggal Pemesanan:</span>
-                            <span class="info-value" id="booking-date">Senin, 15 Januari 2024</span>
+                            <span class="info-value" id="booking-date">
+                                {% if bayar.created_at_wib %}
+                                    {{ bayar.created_at_wib.strftime('%A, %d %B %Y') | replace('Monday','Senin') | replace('Tuesday','Selasa') | replace('Wednesday','Rabu') | replace('Thursday','Kamis') | replace('Friday','Jumat') | replace('Saturday','Sabtu') | replace('Sunday','Minggu') | replace('January','Januari') | replace('February','Februari') | replace('March','Maret') | replace('April','April') | replace('May','Mei') | replace('June','Juni') | replace('July','Juli') | replace('August','Agustus') | replace('September','September') | replace('October','Oktober') | replace('November','November') | replace('December','Desember') }}
+                                {% else %}-{% endif %}
+                            </span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Waktu Pemesanan:</span>
-                            <span class="info-value" id="booking-time">14:30 WIB</span>
+                            <span class="info-value" id="booking-time">
+                                {% if bayar.created_at_wib %}{{ bayar.created_at_wib.strftime('%H:%M') }} WIB{% else %}-{% endif %}
+                            </span>
                         </div>
                     </div>
 
@@ -73,19 +79,26 @@
                         </h3>
                         <div class="info-item">
                             <span class="info-label">ID Bus:</span>
-                            <span class="info-value" id="bus-id">{{ id_bus or "BUS-001" }}</span>
+                            <span class="info-value" id="bus-id">{{ bayar.transaction_id }}</span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Nama Bus:</span>
-                            <span class="info-value" id="bus-name">Suite Class</span>
+                            <span class="info-value" id="bus-name">Kresna</span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Tipe Bus:</span>
-                            <span class="info-value" id="bus-type">Eksekutif AC</span>
+                            <span class="info-value" id="bus-type">{{ bayar.bus or '-' }}</span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Nomor Bus:</span>
-                            <span class="info-value" id="bus-number">B-789-XYZ</span>
+                            <span class="info-value" id="bus-number">
+                                {% set bus = bayar.bus or '' %}
+                                {% if 'Suite' in bus %}B 7005 KRN
+                                {% elif 'Double' in bus %}B 7004 KRN
+                                {% elif 'VIP' in bus %}B 7003 KRN
+                                {% elif 'Tronton' in bus %}B 7002 KRN
+                                {% else %}B 7001 KRN{% endif %}
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -99,21 +112,25 @@
                     <div class="route-display">
                         <div class="route-line"></div>
                         <div class="route-point">
-                            <div class="route-city" id="from-city">Jakarta</div>
-                            <div class="route-time" id="departure-time">08:00 WIB</div>
+                            <div class="route-city" id="from-city">{{ bayar.asal or '-' }}</div>
+                            <div class="route-time" id="departure-time">{{ bayar.jam_berangkat or '-' }} WIB</div>
                         </div>
                         <div class="route-arrow">
                             <i class="fas fa-arrow-right"></i>
                         </div>
                         <div class="route-point">
-                            <div class="route-city" id="to-city">Bandung</div>
-                            <div class="route-time" id="arrival-time">12:30 WIB</div>
+                            <div class="route-city" id="to-city">{{ bayar.tujuan or '-' }}</div>
+                            <div class="route-time" id="arrival-time">-</div>
                         </div>
                     </div>
                     <div style="text-align: center; margin-top: 20px;">
                         <div class="info-item" style="display: inline-block; border: none; padding: 10px 20px;">
                             <span class="info-label">Tanggal Keberangkatan:</span>
-                            <span class="info-value" id="travel-date">Senin, 15 Januari 2024</span>
+                            <span class="info-value" id="travel-date">
+                                {% if bayar.tanggal_berangkat %}
+                                    {{ bayar.tanggal_berangkat.strftime('%A, %d %B %Y') | replace('Monday','Senin') | replace('Tuesday','Selasa') | replace('Wednesday','Rabu') | replace('Thursday','Kamis') | replace('Friday','Jumat') | replace('Saturday','Sabtu') | replace('Sunday','Minggu') | replace('January','Januari') | replace('February','Februari') | replace('March','Maret') | replace('April','April') | replace('May','Mei') | replace('June','Juni') | replace('July','Juli') | replace('August','Agustus') | replace('September','September') | replace('October','Oktober') | replace('November','November') | replace('December','Desember') }}
+                                {% else %}-{% endif %}
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -125,13 +142,21 @@
                         Kursi yang Dipesan
                     </h3>
                     <div class="seats-display" id="seats-display-container">
-                        <!-- Seat badges akan diisi oleh JavaScript -->
+                        {% if bayar.kursi %}
+                            {% for k in bayar.kursi.split(',') %}
+                                {% if k.strip() %}
+                                    <span class="seat-badge">{{ k.strip() }}</span>
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <span style="color:#888;">-</span>
+                        {% endif %}
                     </div>
                     <div style="text-align: center; margin-top: 20px;">
                         <div class="info-item" style="display: inline-block; border: none;">
                             <span class="info-label">Jumlah Kursi:</span>
                             <span class="info-value">
-                                <span id="seat-count-display">2</span> kursi
+                                <span id="seat-count-display">{{ bayar.kursi.split(',')|selectattr('strip')|list|length if bayar.kursi else 0 }}</span> kursi
                             </span>
                         </div>
                     </div>
@@ -146,16 +171,18 @@
                     <div class="booking-info">
                         <div class="booking-item">
                             <span class="info-label">Harga Tiket</span>
-                            <span class="info-value" id="ticket-price">Rp 900.000</span>
+                            <span class="info-value" id="ticket-price">
+                                Rp {{ '{:,.0f}'.format(bayar.total or 0) | replace(',', '.') }}
+                            </span>
                         </div>
                         <div class="booking-item">
                             <span class="info-label">Operator</span>
-                            <span class="info-value" id="operator-name">BusTicket Online</span>
+                            <span class="info-value" id="operator-name">PT Kresna Prime Mobility</span>
                         </div>
                         <div class="booking-item">
                             <span class="info-label">Status Pembayaran</span>
                             <span class="info-value" style="color: #27ae60;">
-                                <i class="fas fa-check-circle"></i> Lunas
+                                <i class="fas fa-check-circle"></i> {{ bayar.status }}
                             </span>
                         </div>
                         <div class="booking-item">

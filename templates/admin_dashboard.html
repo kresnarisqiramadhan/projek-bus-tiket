@@ -1,116 +1,141 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Dashboard Admin - BusTicket Online</title>
+    <title>Dashboard Admin - PT KRESNA PRIME MOBILITY</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_dashboard.css') }}">
-    <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Notification Area -->
-    <div id="notification-area"></div>
+    <div id="notification-area">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
 
-    <!-- Dashboard Container -->
-    <div class="dashboard-container">
-        <!-- Header -->
-        <div class="dashboard-header">
-            <h2><i class="fas fa-tachometer-alt"></i> Dashboard </h2>
-            <p class="welcome-message">Selamat datang...</p>
-            <p class="welcome-subtitle">BusTicket Online Management System</p>
+    <!-- Navbar -->
+    <nav class="top-navbar">
+        <a href="{{ url_for('main.admin_dashboard') }}" class="nav-brand">
+            <img src="{{ url_for('static', filename='img/logo-kresna.jpg') }}" alt="Logo Kresna" style="height: 40px; object-fit: contain;">
+            <span>PT KRESNA PRIME MOBILITY</span>
+        </a>
+        <div class="nav-links">
+            <a href="{{ url_for('main.admin_dashboard') }}" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            <a href="{{ url_for('main.admin_jadwal') }}"><i class="fas fa-calendar-alt"></i> Kelola Jadwal</a>
+            <a href="{{ url_for('main.admin_laporan') }}"><i class="fas fa-chart-line"></i> Laporan</a>
+            <a href="{{ url_for('main.logout') }}" class="nav-logout" onclick="return confirm('Apakah Anda yakin ingin keluar?')"><i class="fas fa-sign-out-alt"></i> Keluar</a>
         </div>
+    </nav>
 
-        <!-- Stats Section -->
+    <div class="dashboard-container" style="margin-top: 30px;">
+
+        <div id="welcome-message" style="text-align: center; margin-bottom: 30px;">
+            <h2 style="color: var(--primary-color); font-size: 28px; margin-bottom: 8px;">Selamat datang, {{ nama }}!</h2>
+            <p style="color: var(--text-secondary);">Pantau dan kelola pemesanan tiket Anda dari panel ini.</p>
+        </div>
+        
+        <style>
+            #welcome-message {
+                overflow: hidden;
+                animation: hideWelcome 0.8s ease-in-out 2.5s forwards;
+            }
+            @keyframes hideWelcome {
+                0% { opacity: 1; max-height: 150px; margin-bottom: 30px; transform: translateY(0); }
+                100% { opacity: 0; max-height: 0; margin-bottom: 0; transform: translateY(-20px); border: none; padding: 0; }
+            }
+        </style>
+
         <div class="dashboard-stats">
             <div class="stat-item">
-                <div class="stat-number totalUsers">0</div>
-                <div class="stat-label">Total Pengguna</div>
+                <div class="stat-number">{{ total_pembeli }}</div>
+                <div class="stat-label">Akun Pembeli</div>
             </div>
+
             <div class="stat-item">
-                <div class="stat-number activeSchedules">0</div>
-                <div class="stat-label">Jadwal Aktif</div>
+                <div class="stat-number">{{ total_agen }}</div>
+                <div class="stat-label">Akun Agen</div>
             </div>
+
             <div class="stat-item">
-                <div class="stat-number todaySales">0</div>
-                <div class="stat-label">Penjualan Hari Ini</div>
+                <div class="stat-number">{{ total_transaksi }}</div>
+                <div class="stat-label">Transaksi Berhasil</div>
             </div>
+
             <div class="stat-item">
-                <div class="stat-number pendingTickets">0</div>
-                <div class="stat-label">Tiket Pending</div>
+                <div class="stat-number">
+                    {{ menunggu_verifikasi }}
+                </div>
+                <div class="stat-label">Menunggu Verifikasi</div>
             </div>
         </div>
 
-        <!-- Main Content -->
         <div class="dashboard-content">
-            <!-- Manage Schedule Card -->
+
             <div class="dashboard-card">
                 <div class="card-content">
                     <div class="card-icon">
                         <i class="fas fa-calendar-alt"></i>
                     </div>
+
                     <h3>Kelola Jadwal</h3>
-                    <p>Kelola jadwal keberangkatan bus, tambah, edit, atau hapus jadwal perjalanan.</p>
-                    <button class="card-btn" data-action="kelola jadwal">
+
+                    <p>
+                        Kelola jadwal keberangkatan bus,
+                        tambah, edit, atau hapus jadwal perjalanan.
+                    </p>
+
+                    <a href="{{ url_for('main.admin_jadwal') }}" class="card-btn">
                         <i class="fas fa-arrow-right"></i> Buka Manajemen
-                    </button>
-                    <p class="shortcut-hint">Shortcut: Ctrl + J</p>
+                    </a>
                 </div>
             </div>
 
-            <!-- Manage Users Card -->
-            <div class="dashboard-card">
-                <div class="card-content">
-                    <div class="card-icon">
-                        <i class="fas fa-users-cog"></i>
-                    </div>
-                    <h3>Kelola Pengguna</h3>
-                    <p>Kelola data pengguna sistem: Admin, Agen, dan Pembeli. Verifikasi dan atur hak akses.</p>
-                    <button class="card-btn" data-action="kelola pengguna">
-                        <i class="fas fa-arrow-right"></i> Buka Manajemen
-                    </button>
-                    <p class="shortcut-hint">Shortcut: Ctrl + P</p>
-                </div>
-            </div>
-
-            <!-- Reports Card -->
             <div class="dashboard-card">
                 <div class="card-content">
                     <div class="card-icon">
                         <i class="fas fa-chart-line"></i>
                     </div>
+
                     <h3>Laporan & Analisis</h3>
-                    <p>Lihat laporan penjualan, analisis data, dan statistik performa sistem.</p>
-                    <button class="card-btn" data-action="laporan">
+
+                    <p>
+                        Lihat laporan penjualan,
+                        analisis data, dan statistik sistem.
+                    </p>
+
+                    <a href="{{ url_for('main.admin_laporan') }}" class="card-btn">
                         <i class="fas fa-arrow-right"></i> Buka Laporan
-                    </button>
-                    <p class="shortcut-hint">Shortcut: Ctrl + L</p>
+                    </a>
                 </div>
             </div>
+
         </div>
 
-        <!-- Logout Section -->
         <div class="logout-container">
-            <button class="logout-btn">
+            <a href="{{ url_for('main.logout') }}" class="logout-btn">
                 <i class="fas fa-sign-out-alt"></i> Logout
-            </button>
-            <p class="logout-hint">Shortcut: Ctrl + Q</p>
+            </a>
         </div>
+
     </div>
 
-    <!-- Footer -->
     <div class="dashboard-footer">
-        <p>&copy; 2024 BusTicket Online Management System | Hak Cipta Dilindungi</p>
+        <p>&copy; 2024 PT KRESNA PRIME MOBILITY</p>
         <p>Last Login: <span id="last-login">Loading...</span></p>
     </div>
 
-    <!-- JavaScript -->
     <script src="{{ url_for('static', filename='js/admin_dashboard.js') }}"></script>
-    
-    <!-- Initialize last login time -->
+
     <script>
-        document.getElementById('last-login').textContent = new Date().toLocaleString('id-ID');
+        document.getElementById('last-login').textContent =
+            new Date().toLocaleString('id-ID');
     </script>
 </body>
 </html>

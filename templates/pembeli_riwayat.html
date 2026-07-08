@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Riwayat Pemesanan - PT Kresna Prime Mobility</title>
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pembeli_dashboard.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #080808;
+            font-family: 'Outfit', sans-serif;
+            color: #f8f9fa;
+            min-height: 100vh;
+        }
+
+        /* ===== MAIN CONTAINER ===== */
+        .main-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 30px 20px 60px;
+        }
+
+        /* ===== PAGE HEADER ===== */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .page-header-left h2 {
+            font-family: 'Playfair Display', serif;
+            color: #d4af37;
+            font-size: 1.8rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .page-header-left p {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 4px;
+            padding-left: 38px;
+        }
+        .btn-back {
+            background: rgba(255,255,255,0.04);
+            color: #aaa;
+            border: 1px solid #222;
+            padding: 10px 20px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-back:hover {
+            background: rgba(212,175,55,0.1);
+            border-color: rgba(212,175,55,0.4);
+            color: #d4af37;
+            transform: translateY(-2px);
+        }
+
+        /* ===== STATS ROW ===== */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: #111;
+            border: 1px solid rgba(212,175,55,0.15);
+            border-radius: 14px;
+            padding: 1.2rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        .stat-icon.gold { background: rgba(212,175,55,0.15); color: #d4af37; }
+        .stat-icon.green { background: rgba(74,222,128,0.12); color: #4ade80; }
+        .stat-icon.blue { background: rgba(96,165,250,0.12); color: #60a5fa; }
+        .stat-info .stat-num {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #fff;
+            line-height: 1;
+        }
+        .stat-info .stat-label {
+            color: #666;
+            font-size: 0.82rem;
+            margin-top: 2px;
+        }
+
+        /* ===== BOOKING CARDS ===== */
+        .booking-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .booking-card {
+            background: #111;
+            border: 1px solid rgba(212,175,55,0.12);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .booking-card:hover {
+            border-color: rgba(212,175,55,0.35);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+            transform: translateY(-2px);
+        }
+
+        .booking-card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #1a1a1a;
+        }
+        .booking-meta {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        .booking-date {
+            color: #888;
+            font-size: 0.85rem;
+        }
+        .booking-date i { color: #d4af37; margin-right: 5px; }
+        .booking-id {
+            font-family: 'Courier New', monospace;
+            color: #d4af37;
+            font-weight: 700;
+            font-size: 0.9rem;
+            background: rgba(212,175,55,0.08);
+            padding: 4px 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(212,175,55,0.2);
+        }
+
+        /* Status badges */
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            letter-spacing: 0.5px;
+        }
+        .status-lunas {
+            background: rgba(40,167,69,0.12);
+            color: #4ade80;
+            border: 1px solid rgba(74,222,128,0.35);
+        }
+        .status-menunggu {
+            background: rgba(212,175,55,0.12);
+            color: #d4af37;
+            border: 1px solid rgba(212,175,55,0.35);
+        }
+        .status-ditolak {
+            background: rgba(220,53,69,0.12);
+            color: #f87171;
+            border: 1px solid rgba(248,113,113,0.35);
+        }
+
+        /* Card body */
+        .booking-card-body {
+            display: grid;
+            grid-template-columns: 1.8fr 1fr 1fr auto;
+            gap: 1.5rem;
+            padding: 1.25rem 1.5rem;
+            align-items: center;
+        }
+
+        /* Route section */
+        .route-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .route-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, rgba(212,175,55,0.2), rgba(212,175,55,0.05));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #d4af37;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+        .route-info .route-cities {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .route-info .route-cities .arrow {
+            color: #d4af37;
+            font-size: 0.75rem;
+        }
+        .route-info .route-bus {
+            color: #666;
+            font-size: 0.82rem;
+            margin-top: 3px;
+        }
+        .route-info .route-bus span { color: #888; }
+
+        /* Schedule section */
+        .schedule-section .sched-date {
+            color: #fff;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        .schedule-section .sched-date i {
+            color: #d4af37;
+            margin-right: 5px;
+            font-size: 0.85rem;
+        }
+        .schedule-section .sched-time {
+            color: #888;
+            font-size: 0.85rem;
+            margin-top: 3px;
+        }
+        .schedule-section .sched-time i {
+            color: #d4af37;
+            margin-right: 5px;
+        }
+
+        /* Seat & Price section */
+        .seat-price-section {
+            text-align: right;
+        }
+        .seat-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            justify-content: flex-end;
+            margin-bottom: 6px;
+        }
+        .seat-chip {
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.82rem;
+        }
+        .price-tag {
+            color: #d4af37;
+            font-weight: 800;
+            font-size: 1.15rem;
+        }
+
+        /* Action section */
+        .action-section {
+            display: flex;
+            align-items: center;
+        }
+        .btn-ticket {
+            background: linear-gradient(135deg, #c9a227, #a07820);
+            color: #000;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.88rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .btn-ticket:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(212,175,55,0.4);
+            color: #000;
+        }
+        .btn-locked {
+            background: #1a1a1a;
+            color: #444;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            border: 1px solid #222;
+            cursor: not-allowed;
+        }
+
+        /* ===== EMPTY STATE ===== */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            background: #111;
+            border: 1px solid rgba(212,175,55,0.12);
+            border-radius: 16px;
+        }
+        .empty-state .empty-icon {
+            font-size: 3.5rem;
+            color: rgba(212,175,55,0.25);
+            margin-bottom: 1.2rem;
+        }
+        .empty-state h4 {
+            color: #fff;
+            font-size: 1.4rem;
+            margin-bottom: 0.5rem;
+        }
+        .empty-state p {
+            color: #666;
+            margin-bottom: 1.5rem;
+        }
+        .btn-cari {
+            background: linear-gradient(135deg, #c9a227, #a07820);
+            color: #000;
+            padding: 12px 30px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        .btn-cari:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(212,175,55,0.4);
+            color: #000;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .stats-row { grid-template-columns: 1fr; }
+            .booking-card-body {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            .seat-price-section { text-align: left; }
+            .seat-badges { justify-content: flex-start; }
+            .page-header { flex-direction: column; gap: 1rem; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navbar -->
+    <nav class="top-navbar">
+        <a href="{{ url_for('main.pembeli_dashboard') }}" class="nav-brand">
+            <img src="{{ url_for('static', filename='img/logo-kresna.jpg') }}" alt="Logo Kresna" style="height: 45px !important; width: 45px !important;">
+            <span>PT KRESNA PRIME MOBILITY</span>
+        </a>
+        <div class="nav-right" style="display: flex; align-items: center; gap: 25px;">
+            <div class="nav-links">
+                <a href="{{ url_for('main.pembeli_riwayat') }}" style="color:#d4af37;"><i class="fas fa-history"></i> Riwayat</a>
+            </div>
+            <div class="navbar-user" style="display: flex; align-items: center; gap: 15px; border-left: 1px solid rgba(255,255,255,0.2); padding-left: 20px;">
+                <div class="user-greeting" style="line-height: 1.2;">
+                    <span style="display: block; color: #aaa; font-size: 0.85rem;">Halo,</span>
+                    <span style="color: #d4af37; font-weight: bold; font-size: 0.95rem;">{{ current_user.nama if current_user else 'VIP' }}</span>
+                </div>
+                <a href="{{ url_for('main.logout') }}" class="nav-logout" style="padding: 6px 15px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 6px;">
+                    <i class="fas fa-sign-out-alt"></i> Keluar
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-container">
+
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="page-header-left">
+                <h2><i class="fas fa-history"></i> Riwayat Perjalanan</h2>
+                <p>Kelola semua pesanan dan akses e-tiket Anda</p>
+            </div>
+            <a href="{{ url_for('main.pembeli_dashboard') }}" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Dashboard
+            </a>
+        </div>
+
+        <!-- Stats Row -->
+        {% set total_all = riwayat|length %}
+        {% set total_lunas = riwayat|selectattr('status', 'equalto', 'Lunas')|list|length %}
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon gold"><i class="fas fa-receipt"></i></div>
+                <div class="stat-info">
+                    <div class="stat-num">{{ total_all }}</div>
+                    <div class="stat-label">Total Pesanan</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+                <div class="stat-info">
+                    <div class="stat-num">{{ total_lunas }}</div>
+                    <div class="stat-label">Tiket Aktif</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Booking Cards List -->
+        <div class="booking-list">
+            {% for bayar in riwayat %}
+            <div class="booking-card">
+                <!-- Card Top: date, ID, status -->
+                <div class="booking-card-top">
+                    <div class="booking-meta">
+                        <span class="booking-date">
+                            <i class="far fa-calendar-alt"></i>
+                            {{ bayar.created_at_wib.strftime('%d %b %Y, %H:%M') if bayar.created_at_wib else '-' }} WIB
+                        </span>
+                        <span class="booking-id">{{ bayar.transaction_id }}</span>
+                    </div>
+                    {% if bayar.status == 'Lunas' %}
+                        <span class="status-badge status-lunas"><i class="fas fa-check-circle"></i> LUNAS</span>
+                    {% elif bayar.status == 'Ditolak' %}
+                        <span class="status-badge status-ditolak"><i class="fas fa-times-circle"></i> DITOLAK</span>
+                    {% else %}
+                        <span class="status-badge status-menunggu"><i class="fas fa-clock"></i> DIPROSES</span>
+                    {% endif %}
+                </div>
+
+                <!-- Card Body: route, schedule, seats/price, action -->
+                <div class="booking-card-body">
+                    <!-- Route -->
+                    <div class="route-section">
+                        <div class="route-icon"><i class="fas fa-bus"></i></div>
+                        <div class="route-info">
+                            <div class="route-cities">
+                                {{ bayar.asal or '-' }}
+                                <i class="fas fa-arrow-right arrow"></i>
+                                {{ bayar.tujuan or '-' }}
+                            </div>
+                            <div class="route-bus">Kresna <span>• {{ bayar.bus or '-' }}</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Schedule -->
+                    <div class="schedule-section">
+                        {% if bayar.tanggal_berangkat %}
+                            <div class="sched-date"><i class="far fa-calendar-alt"></i> {{ bayar.tanggal_berangkat.strftime('%d %b %Y') }}</div>
+                            <div class="sched-time"><i class="far fa-clock"></i> {{ bayar.jam_berangkat or '08:00' }} WIB</div>
+                        {% else %}
+                            <div class="sched-date" style="color:#444;">-</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Seats & Price -->
+                    <div class="seat-price-section">
+                        <div class="seat-badges">
+                            {% if bayar.kursi %}
+                                {% for k in bayar.kursi.split(',') %}
+                                    {% if k.strip() %}
+                                        <span class="seat-chip">{{ k.strip() }}</span>
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <span style="color:#444;">-</span>
+                            {% endif %}
+                        </div>
+                        <div class="price-tag">Rp {{ '{:,.0f}'.format(bayar.total or 0) | replace(',', '.') }}</div>
+                    </div>
+
+                    <!-- Action -->
+                    <div class="action-section">
+                        {% if bayar.status == 'Lunas' %}
+                            <a href="{{ url_for('main.pembeli_etiket', transaction_id=bayar.transaction_id) }}" class="btn-ticket">
+                                <i class="fas fa-ticket-alt"></i> E-Tiket
+                            </a>
+                        {% else %}
+                            <button class="btn-locked" disabled>
+                                <i class="fas fa-lock"></i> Terkunci
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <!-- Empty State -->
+            <div class="empty-state">
+                <div class="empty-icon"><i class="fas fa-ticket-alt"></i></div>
+                <h4>Belum Ada Riwayat Perjalanan</h4>
+                <p>Mulai perjalanan premium Anda dengan memesan tiket bus pertama.</p>
+                <a href="{{ url_for('main.pembeli_caritiket') }}" class="btn-cari">
+                    <i class="fas fa-search"></i> Cari Tiket Sekarang
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+
+    </main>
+
+</body>
+</html>

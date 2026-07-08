@@ -1,661 +1,469 @@
-// static/js/pembeli_caritiket.js - VERSION WITHOUT TIME LABELS
+// pembeli_caritiket.js - Bus beroperasi setiap hari (tanpa tanggal di jadwal)
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('✅ Cari Tiket page loaded successfully!');
-    
-    // DATA PERUSAHAAN - 4 ARMADA dengan 2 JADWAL MASING-MASING
-    window.companyBuses = [
-        {
-            id: 1,
-            name: 'Suite Class',
-            type: 'Suite',
-            busNumber: 'SC-001',
-            capacity: 36,
-            facilities: ['AC Premium', 'Bed Seat VIP', 'TV 24"', 'WiFi High-Speed', 'Toilet Private', 'Makan 2x', 'Minuman Gratis', 'Selimut & Bantal'],
-            schedules: [
-                { time: '07:00', duration: '6 jam', price: 450000 },
-                { time: '19:00', duration: '6 jam', price: 480000 }
-            ]
-        },
-        {
-            id: 2,
-            name: 'Double Decker',
-            type: 'Double',
-            busNumber: 'DD-002',
-            capacity: 48,
-            facilities: ['AC Full', 'Seat Lantai 2', 'TV', 'WiFi', 'Snack', 'Air Mineral'],
-            schedules: [
-                { time: '08:30', duration: '7 jam', price: 350000 },
-                { time: '20:30', duration: '7 jam', price: 380000 }
-            ]
-        },
-        {
-            id: 3,
-            name: 'Tronton',
-            type: 'Big',
-            busNumber: 'TR-003',
-            capacity: 52,
-            facilities: ['AC Standard', 'Seat Lebar', 'TV', 'Air Mineral'],
-            schedules: [
-                { time: '06:00', duration: '8 jam', price: 250000 },
-                { time: '18:00', duration: '8 jam', price: 280000 }
-            ]
-        },
-        {
-            id: 4,
-            name: 'VIP Class',
-            type: 'VIP',
-            busNumber: 'VC-004',
-            capacity: 32,
-            facilities: ['AC VIP', 'Reclining Seat Premium', 'TV 32"', 'WiFi VIP', 'Toilet', 'Makan 3x', 'Minuman Premium', 'Bantal Memory Foam'],
-            schedules: [
-                { time: '09:00', duration: '5.5 jam', price: 550000 },
-                { time: '21:00', duration: '5.5 jam', price: 600000 }
-            ]
-        }
-    ];
-    
-    // Inisialisasi
-    initializeSearchForm();
-    initializeDateInput();
-    initializeLogoutButton();
-    initializeSelectButtons();
-    
-    // Tampilkan info armada
-    displayFleetInfo();
-    
-    console.log('🎯 Cari Tiket JS initialized with 4 buses (2 schedules each)');
+    initForm();
+    initDate();
+    loadArmada();
+    checkUrlParams();
+    initStickySearch();
+    startFakePopups();
 });
 
-// 1. TAMPILKAN INFO ARMADA (TANPA LABEL PAGI/SORE)
-function displayFleetInfo() {
-    const fleetGrid = document.querySelector('.fleet-grid');
-    if (!fleetGrid) return;
-    
-    fleetGrid.innerHTML = '';
-    
-    window.companyBuses.forEach(bus => {
-        const fleetItem = document.createElement('div');
-        fleetItem.className = 'fleet-item';
-        
-        // Format schedule list TANPA label pagi/sore
-        const scheduleList = bus.schedules.map(schedule => {
-            return `
-            <div class="schedule-item">
-                <div>
-                    <span class="schedule-time">${schedule.time}</span>
-                </div>
-                <span class="schedule-price">Rp ${schedule.price.toLocaleString('id-ID')}</span>
-            </div>`;
-        }).join('');
-        
-        fleetItem.innerHTML = `
-            <div class="fleet-header">
-                <div style="display: flex; align-items: center; gap: 0.8rem;">
-                    <h4>${bus.name}</h4>
-                </div>
-                <span class="fleet-type">${bus.type}</span>
-            </div>
-            <div class="fleet-details">
-                <p><i class="fas fa-users"></i> ${bus.capacity} Kursi</p>
-                <p><i class="fas fa-clock"></i> 2 Jadwal/Hari</p>
-            </div>
-            <div class="fleet-schedule">
-                ${scheduleList}
-            </div>
-            <div class="fleet-facilities">
-                <small>
-                    <i class="fas fa-star"></i> Fasilitas: ${bus.facilities.slice(0, 3).join(', ')}...
-                </small>
-            </div>
-        `;
-        
-        fleetGrid.appendChild(fleetItem);
+function initStickySearch() {
+    window.addEventListener('scroll', function() {
+        const searchWidget = document.querySelector('.search-widget-container');
+        if (window.scrollY > 350) {
+            searchWidget.classList.add('sticky-search');
+        } else {
+            searchWidget.classList.remove('sticky-search');
+        }
     });
 }
 
-// 2. INISIALISASI FORM PENCARIAN
-function initializeSearchForm() {
-    const searchForm = document.getElementById('searchForm');
-    if (!searchForm) return;
-    
-    searchForm.addEventListener('submit', function(event) {
-        event.preventDefault();
-        performSearch();
-    });
-    
-    // Set event untuk validasi real-time
-    const originSelect = document.getElementById('origin');
-    const destinationSelect = document.getElementById('destination');
-    
-    if (originSelect && destinationSelect) {
-        originSelect.addEventListener('change', validateCitySelection);
-        destinationSelect.addEventListener('change', validateCitySelection);
-    }
-    
-    // Auto set tanggal besok
-    const dateInput = document.getElementById('departureDate');
-    if (dateInput) {
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        dateInput.value = tomorrow.toISOString().split('T')[0];
-        dateInput.min = new Date().toISOString().split('T')[0];
-    }
+// tampilkan 4 armada tetap
+function loadArmada() {
+    const grid = document.querySelector('.fleet-grid');
+    if (!grid) return;
+
+    const armada = [
+        { 
+            icon: 'fa-bed',
+            name: 'Sleeper Bus', 
+            tag: 'Tidur Nyaman',
+            desc: 'Kursi tidur flatbed 180° untuk perjalanan malam hari yang maksimal',
+            fasilitas: ['AC Double', 'Selimut & Bantal', 'Colokan USB', 'Toilet'],
+        },
+        { 
+            icon: 'fa-bus',
+            name: 'Double Decker', 
+            tag: 'Lantai 2',
+            desc: 'Bus tingkat 2 lantai dengan kursi panorama dan pemandangan terbaik',
+            fasilitas: ['WiFi', 'TV LCD', 'AC', 'Colokan USB'],
+        },
+        { 
+            icon: 'fa-truck',
+            name: 'Tronton', 
+            tag: 'Kapasitas Besar',
+            desc: 'Bus besar berkapasitas tinggi, ideal untuk perjalanan rombongan',
+            fasilitas: ['AC', 'Reclining Seat', 'Bagasi Luas', 'Toilet'],
+        },
+        { 
+            icon: 'fa-crown',
+            name: 'VIP Class', 
+            tag: 'Premium',
+            desc: 'Kursi VIP eksklusif dengan pelayanan setara kabin pesawat First Class',
+            fasilitas: ['Suite Seat', 'Makan Gratis', 'WiFi Premium', 'Lounge'],
+        },
+    ];
+
+    grid.innerHTML = armada.map(a => `
+        <div class="fleet-item-pro">
+            <div class="fleet-icon-pro">
+                <i class="fas ${a.icon}"></i>
+            </div>
+            <div class="fleet-tag-pro">${a.tag}</div>
+            <h4 class="fleet-name-pro">${a.name}</h4>
+            <p class="fleet-desc-pro">${a.desc}</p>
+            <div class="fleet-fasilitas">
+                ${a.fasilitas.map(f => `<span class="fasilitas-item"><i class="fas fa-check"></i> ${f}</span>`).join('')}
+            </div>
+        </div>
+    `).join('');
 }
 
-// 3. VALIDASI PILIHAN KOTA
-function validateCitySelection() {
-    const origin = document.getElementById('origin')?.value;
-    const destination = document.getElementById('destination')?.value;
-    
-    if (origin && destination && origin === destination) {
-        showNotification('Kota asal dan tujuan tidak boleh sama!', 'warning');
-        return false;
-    }
-    
-    return true;
+
+function initForm() {
+    const form = document.getElementById('searchForm');
+    if (form) form.addEventListener('submit', e => { e.preventDefault(); cariTiket(); });
 }
 
-// 4. INISIALISASI INPUT TANGGAL
-function initializeDateInput() {
+function initDate() {
     const dateInput = document.getElementById('departureDate');
     if (!dateInput) return;
-    
-    // Set min date ke hari ini
     const today = new Date().toISOString().split('T')[0];
     dateInput.min = today;
-    
-    // Set max date 3 bulan dari sekarang
-    const maxDate = new Date();
-    maxDate.setMonth(maxDate.getMonth() + 3);
-    dateInput.max = maxDate.toISOString().split('T')[0];
+    const max = new Date();
+    max.setMonth(max.getMonth() + 3);
+    dateInput.max = max.toISOString().split('T')[0];
+    // set default besok
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    dateInput.value = tomorrow.toISOString().split('T')[0];
 }
 
-// 5. PROSES PENCARIAN
-function performSearch() {
+function checkUrlParams() {
+    const params = new URLSearchParams(window.location.search);
+    const origin = params.get('origin');
+    const destination = params.get('destination');
+    const date = params.get('date');
+    const passengers = params.get('passengers');
+
+    if (origin && destination && date) {
+        const originSelect = document.getElementById('origin');
+        const destSelect = document.getElementById('destination');
+        const dateInput = document.getElementById('departureDate');
+        const passSelect = document.getElementById('passengers');
+
+        if (originSelect) originSelect.value = origin;
+        if (destSelect) destSelect.value = destination;
+        if (dateInput) dateInput.value = date;
+        if (passSelect && passengers) passSelect.value = passengers;
+
+        // Auto trigger search with slight delay to show loading animation properly
+        setTimeout(() => {
+            cariTiket();
+        }, 300);
+    }
+}
+
+function cariTiket() {
     const origin = document.getElementById('origin')?.value;
     const destination = document.getElementById('destination')?.value;
     const date = document.getElementById('departureDate')?.value;
-    
-    // Validasi
+
     if (!origin || !destination || !date) {
-        showNotification('Harap isi semua field pencarian!', 'error');
-        return;
+        showNotif('Harap isi semua field!', 'error'); return;
     }
-    
     if (origin === destination) {
-        showNotification('Kota asal dan tujuan tidak boleh sama!', 'error');
-        return;
+        showNotif('Kota asal dan tujuan tidak boleh sama!', 'error'); return;
     }
-    
-    // Tampilkan loading
+
     showLoading(true);
-    
-    // Simulasi loading
-    setTimeout(() => {
-        const results = generateSearchResults(origin, destination, date);
-        displaySearchResults(results);
-        showLoading(false);
-        
-        if (results.length > 0) {
-            showNotification(`Ditemukan ${results.length} jadwal bus untuk rute ${origin} → ${destination}`, 'success');
-        } else {
-            showNotification('Tidak ada jadwal tersedia untuk rute ini', 'warning');
-        }
-    }, 800);
-}
 
-// 6. GENERATE HASIL PENCARIAN
-function generateSearchResults(origin, destination, date) {
-    const results = [];
-    let scheduleId = 1;
-    
-    // Untuk setiap bus
-    window.companyBuses.forEach(bus => {
-        // Untuk setiap jadwal dalam bus (2 jadwal saja)
-        bus.schedules.forEach(schedule => {
-            // Hitung waktu tiba
-            const [hours] = schedule.duration.match(/\d+/);
-            const arrivalTime = calculateArrivalTime(schedule.time, parseFloat(schedule.duration));
-            
-            // Generate jumlah kursi acak (30-90% dari kapasitas)
-            const minSeats = Math.floor(bus.capacity * 0.3);
-            const maxSeats = Math.floor(bus.capacity * 0.9);
-            const availableSeats = Math.floor(Math.random() * (maxSeats - minSeats + 1)) + minSeats;
-            
-            // Tambahkan ke hasil (TANPA KATEGORI WAKTU)
-            results.push({
-                id: scheduleId,
-                busId: bus.id,
-                busName: bus.name,
-                busType: bus.type,
-                busNumber: bus.busNumber,
-                origin: origin,
-                destination: destination,
-                date: date,
-                departureTime: schedule.time,
-                arrivalTime: arrivalTime,
-                duration: schedule.duration,
-                price: calculateFinalPrice(schedule.price, date),
-                availableSeats: availableSeats,
-                totalSeats: bus.capacity,
-                facilities: bus.facilities
-            });
-            
-            scheduleId++;
+    fetch(`/api/jadwal/cari?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&date=${date}`)
+        .then(r => {
+            if (r.redirected) {
+                window.location.href = r.url;
+                return Promise.reject('Sesi berakhir, silakan login kembali.');
+            }
+            return r.json();
+        })
+        .then(data => {
+            showLoading(false);
+            if (data.success && data.results.length > 0) {
+                tampilHasil(data.results, date);
+                showNotif(`Ditemukan ${data.results.length} jadwal`, 'success');
+            } else {
+                tampilKosong(origin, destination);
+                showNotif('Tidak ada jadwal tersedia untuk rute ini', 'warning');
+            }
+        })
+        .catch(() => {
+            showLoading(false);
+            showNotif('Terjadi kesalahan, coba lagi', 'error');
         });
-    });
-    
-    // Urutkan berdasarkan waktu keberangkatan
-    return results.sort((a, b) => {
-        const timeA = a.departureTime.split(':').map(Number);
-        const timeB = b.departureTime.split(':').map(Number);
-        return (timeA[0] * 60 + timeA[1]) - (timeB[0] * 60 + timeB[1]);
-    });
 }
 
-// 7. HITUNG WAKTU TIBA (support untuk jam desimal)
-function calculateArrivalTime(departureTime, durationHours) {
-    const [hours, minutes] = departureTime.split(':').map(Number);
-    
-    // Konversi durasi ke menit
-    const durationMinutes = Math.round(durationHours * 60);
-    
-    const totalMinutes = hours * 60 + minutes + durationMinutes;
-    
-    const arrivalHour = Math.floor(totalMinutes / 60) % 24;
-    const arrivalMinute = totalMinutes % 60;
-    
-    return `${arrivalHour.toString().padStart(2, '0')}:${arrivalMinute.toString().padStart(2, '0')}`;
-}
-
-// 8. HITUNG HARGA FINAL
-function calculateFinalPrice(basePrice, dateString) {
-    let price = basePrice;
-    const date = new Date(dateString);
-    const day = date.getDay(); // 0 = Minggu, 6 = Sabtu
-    
-    // Weekend lebih mahal
-    if (day === 0 || day === 6) {
-        price = Math.round(price * 1.20); // 20% lebih mahal di weekend
-    }
-    
-    return price;
-}
-
-// 9. TAMPILKAN HASIL PENCARIAN (TANPA SUMMARY PAGI/SORE)
-function displaySearchResults(results) {
+function tampilHasil(results, selectedDate) {
     const busList = document.getElementById('busList');
-    const resultsCount = document.getElementById('resultsCount');
     const noResults = document.getElementById('noResults');
     const searchResults = document.getElementById('searchResults');
-    
-    if (!busList || !resultsCount || !noResults || !searchResults) return;
-    
-    // Update counter
-    const totalResults = results.length;
-    resultsCount.textContent = `${totalResults} jadwal ditemukan`;
-    
-    if (totalResults === 0) {
-        searchResults.style.display = 'none';
-        noResults.style.display = 'block';
-        noResults.innerHTML = `
-            <i class="fas fa-search"></i>
-            <h3>Tidak ada jadwal tersedia</h3>
-            <p>Coba pilih tanggal lain atau rute yang berbeda</p>
-        `;
-        return;
-    }
-    
-    // Kosongkan dulu
+    const resultsCount = document.getElementById('resultsCount');
+
+    resultsCount.textContent = `${results.length} jadwal ditemukan`;
     busList.innerHTML = '';
-    
-    // Tambahkan setiap hasil
-    results.forEach(bus => {
-        const busCard = createBusCard(bus);
-        busList.appendChild(busCard);
+
+    // Format tanggal untuk display
+    const dateObj = new Date(selectedDate + 'T00:00:00');
+    const dateDisplay = dateObj.toLocaleDateString('id-ID', { 
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' 
     });
-    
-    // Tampilkan hasil
+
+    results.forEach(bus => {
+        const card = document.createElement('div');
+        card.className = 'bus-card';
+        const seatPct = Math.round((bus.availableSeats / bus.totalSeats) * 100);
+        const seatColor = seatPct > 50 ? '#27ae60' : seatPct > 20 ? '#f39c12' : '#e74c3c';
+        const isFull = bus.availableSeats <= 0;
+
+        card.innerHTML = `
+            <div class="bus-card-header">
+                <div>
+                    <h3>${bus.busName}</h3>
+                    <div class="bus-number">${bus.departureTime}${bus.arrivalTime ? ' - ' + bus.arrivalTime : ''}</div>
+                </div>
+                <span class="bus-type-badge">${isFull ? '🔴 Penuh' : '🟢 Tersedia'}</span>
+            </div>
+            <div class="bus-card-body">
+                <div class="route-row">
+                    <div class="route-city">
+                        <div class="city-name">${bus.origin}</div>
+                        <small style="color:#999;font-size:11px;">Asal</small>
+                    </div>
+                    <div class="route-arrow">
+                        <div class="arrow-line"></div>
+                        <small>${dateDisplay}</small>
+                    </div>
+                    <div class="route-city">
+                        <div class="city-name">${bus.destination}</div>
+                        <small style="color:#999;font-size:11px;">Tujuan</small>
+                    </div>
+                </div>
+                <div class="bus-info-row">
+                    <span>🪑 <b style="color:${seatColor}">${bus.availableSeats}</b>/${bus.totalSeats} kursi tersedia</span>
+                    <span style="margin-left:auto;font-size:12px;color:${seatColor};font-weight:600;">${seatPct}% tersedia</span>
+                </div>
+            </div>
+            <div class="bus-card-footer">
+                <div class="price-tag">
+                    ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(bus.price)}
+                    <small>/orang</small>
+                </div>
+                ${isFull 
+                    ? '<button class="select-btn" disabled style="opacity:0.5;cursor:not-allowed;">Kursi Penuh</button>'
+                    : '<button class="select-btn">Pilih Jadwal →</button>'
+                }
+            </div>
+        `;
+
+        if (!isFull) {
+            card.querySelector('.select-btn').addEventListener('click', function() {
+                pilihJadwal(bus.id, bus.busName, bus, selectedDate);
+            });
+        }
+
+        busList.appendChild(card);
+    });
+
     noResults.style.display = 'none';
     searchResults.style.display = 'block';
 }
 
-// 10. BUAT KARTU BUS (TANPA LABEL PAGI/SORE)
-function createBusCard(bus) {
-    const card = document.createElement('div');
-    card.className = 'bus-card';
-    
-    // Hitung persentase kursi
-    const seatPercentage = Math.round((bus.availableSeats / bus.totalSeats) * 100);
-    
-    // Tentukan warna progress berdasarkan ketersediaan
-    let progressColor = '#27ae60'; // Hijau default
-    if (seatPercentage > 80) progressColor = '#e74c3c'; // Merah jika hampir penuh
-    else if (seatPercentage > 60) progressColor = '#f39c12'; // Kuning jika cukup penuh
-    
-    card.innerHTML = `
-        <div class="bus-header">
-            <div class="bus-name">
-                <div>
-                    <h3>${bus.busName}</h3>
-                    <div class="bus-number">
-                        No: ${bus.busNumber} • ${bus.busType}
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="bus-details">
-            <div class="detail-item">
-                <i class="fas fa-route" style="color: #9b59b6;"></i>
-                <div>
-                    <div class="detail-label">Rute</div>
-                    <div class="detail-value">
-                        <span style="color: #e74c3c;">${bus.origin}</span> 
-                        <i class="fas fa-arrow-right" style="margin: 0 5px; color: #95a5a6;"></i>
-                        <span style="color: #27ae60;">${bus.destination}</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="detail-item">
-                <i class="fas fa-calendar-alt" style="color: #e67e22;"></i>
-                <div>
-                    <div class="detail-label">Tanggal</div>
-                    <div class="detail-value">${formatDate(bus.date)}</div>
-                </div>
-            </div>
-            
-            <div class="detail-item">
-                <i class="fas fa-clock" style="color: #3498db;"></i>
-                <div>
-                    <div class="detail-label">Berangkat</div>
-                    <div class="detail-value">
-                        <strong>${bus.departureTime}</strong> WIB
-                    </div>
-                </div>
-            </div>
-            
-            <div class="detail-item">
-                <i class="fas fa-flag-checkered" style="color: #2ecc71;"></i>
-                <div>
-                    <div class="detail-label">Tiba</div>
-                    <div class="detail-value">
-                        <strong>${bus.arrivalTime}</strong> WIB
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="seats-info">
-            <div class="seats-count">
-                <span>Kursi Tersedia: <strong>${bus.availableSeats} / ${bus.totalSeats}</strong></span>
-                <span style="color: ${seatPercentage > 80 ? '#e74c3c' : seatPercentage > 60 ? '#f39c12' : '#27ae60'}">
-                    ${seatPercentage}% terisi
-                </span>
-            </div>
-            <div class="seat-progress">
-                <div class="progress-bar" style="width: ${seatPercentage}%; background: ${progressColor};"></div>
-            </div>
-        </div>
-        
-        <div class="facilities-section">
-            <div style="font-size: 0.9rem; color: #667eea; margin-bottom: 0.5rem;">
-                <i class="fas fa-wifi"></i> Fasilitas:
-            </div>
-            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem;">
-                ${bus.facilities.slice(0, 4).map(fac => `
-                    <span style="background: white; border: 1px solid #667eea; color: #667eea; padding: 0.3rem 0.6rem; border-radius: 15px; font-size: 0.8rem;">
-                        ${fac}
-                    </span>
-                `).join('')}
-                ${bus.facilities.length > 4 ? 
-                    `<span style="color: #7f8c8d; font-size: 0.8rem; background: #f8f9fa; padding: 0.3rem 0.6rem; border-radius: 15px; border: 1px dashed #bdc3c7;">
-                        +${bus.facilities.length - 4} lainnya
-                    </span>` : 
-                    ''}
-            </div>
-        </div>
-        
-        <div class="bus-footer">
-            <div class="price-container">
-                <div class="price">
-                    Rp ${bus.price.toLocaleString('id-ID')}
-                    <small>/orang</small>
-                </div>
-                <div class="price-note">
-                    <i class="fas fa-info-circle"></i> 
-                    <span>Harga sudah termasuk PPN</span>
-                </div>
-            </div>
-            <button class="select-btn" data-schedule-id="${bus.id}" data-bus-name="${bus.busName}">
-                <i class="fas fa-check-circle"></i> Pilih Jadwal
-            </button>
-        </div>
+function tampilKosong(origin, destination) {
+    const noResults = document.getElementById('noResults');
+    const searchResults = document.getElementById('searchResults');
+    const resultsCount = document.getElementById('resultsCount');
+
+    resultsCount.textContent = '0 jadwal ditemukan';
+    noResults.style.display = 'block';
+    noResults.innerHTML = `
+        <i class="fas fa-search"></i>
+        <h3>Tidak ada jadwal tersedia</h3>
+        <p>Belum ada jadwal untuk rute ${origin} - ${destination}. Coba rute lain atau hubungi kami.</p>
     `;
-    
-    return card;
+    searchResults.style.display = 'none';
 }
 
-// 11. FORMAT TANGGAL
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-    return date.toLocaleDateString('id-ID', options);
-}
-
-// 12. INISIALISASI TOMBOL LOGOUT
-function initializeLogoutButton() {
-    const logoutBtn = document.querySelector('.logout-btn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', function(event) {
-            if (!confirm('Yakin ingin logout dari sistem?')) {
-                event.preventDefault();
-            }
-        });
-    }
-}
-
-// 13. INISIALISASI TOMBOL PILIH
-function initializeSelectButtons() {
-    // Gunakan event delegation
-    document.addEventListener('click', function(event) {
-        const selectBtn = event.target.closest('.select-btn');
-        if (selectBtn) {
-            const scheduleId = selectBtn.getAttribute('data-schedule-id');
-            const busName = selectBtn.getAttribute('data-bus-name');
-            selectSchedule(scheduleId, busName);
-        }
-    });
-}
-
-// 14. PROSES PEMILIHAN JADWAL
-function selectSchedule(scheduleId, busName) {
-    console.log(`Pilih jadwal ${scheduleId} - ${busName}`);
-    
-    // Simpan ke localStorage
-    localStorage.setItem('selectedScheduleId', scheduleId);
-    localStorage.setItem('selectedBusName', busName);
-    
-    // Ambil data form
-    const origin = document.getElementById('origin')?.value;
-    const destination = document.getElementById('destination')?.value;
-    const date = document.getElementById('departureDate')?.value;
-    const passengers = document.getElementById('passengers')?.value || '1';
-    
-    // Simpan ke session
+function pilihJadwal(scheduleId, busName, busData, selectedDate) {
     sessionStorage.setItem('bookingData', JSON.stringify({
-        scheduleId: scheduleId,
-        busName: busName,
-        origin: origin,
-        destination: destination,
-        date: date,
-        passengers: passengers,
+        scheduleId, busName,
+        origin: busData.origin,
+        destination: busData.destination,
+        date: selectedDate,  // tanggal yang dipilih user
+        departureTime: busData.departureTime,
+        arrivalTime: busData.arrivalTime || '',
+        price: busData.price,
+        availableSeats: busData.availableSeats,
+        totalSeats: busData.totalSeats,
+        passengers: parseInt(document.getElementById('passengers')?.value || 1),
         timestamp: new Date().toISOString()
     }));
-    
-    showNotification(`Memilih ${busName}`, 'success');
-    
-    // Redirect ke halaman pemilihan kursi
-    setTimeout(() => {
-    window.location.href = `/pembeli/kursi?schedule=${scheduleId}`;
-}, 1000);
+
+    localStorage.setItem('selectedScheduleId', scheduleId);
+    localStorage.setItem('selectedBusName', busName);
+
+    showNotif(`Memilih ${busName}`, 'success');
+    setTimeout(() => { window.location.href = `/pembeli/kursi?schedule=${scheduleId}`; }, 800);
 }
 
-// 15. TOGGLE LOADING STATE
+function startFakePopups() {
+    const messages = [
+        "Seseorang baru saja memesan tiket ke rute ini!",
+        "3 kursi terakhir di bus Premium hampir habis.",
+        "5 orang sedang melihat rute ini sekarang.",
+        "Harga tiket termurah ditemukan untuk besok!"
+    ];
+    setInterval(() => {
+        if(Math.random() > 0.4) {
+            const msg = messages[Math.floor(Math.random() * messages.length)];
+            const div = document.createElement('div');
+            div.className = 'fake-popup';
+            div.innerHTML = `<i class="fas fa-bell"></i> <div><h4 style="margin:0; font-size: 13px; color:#d4af37; margin-bottom: 2px;">Pemberitahuan</h4><p style="margin:0; font-size: 12px; opacity: 0.9;">${msg}</p></div>`;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 6000);
+        }
+    }, 15000);
+}
+
 function showLoading(show) {
     const loading = document.getElementById('loading');
     const searchResults = document.getElementById('searchResults');
     const noResults = document.getElementById('noResults');
-    
     if (loading) loading.style.display = show ? 'block' : 'none';
-    if (searchResults) searchResults.style.display = show ? 'none' : 'block';
+    if (searchResults && show) searchResults.style.display = 'none';
     if (noResults && show) noResults.style.display = 'none';
 }
 
-// 16. FUNGSI NOTIFIKASI
-function showNotification(message, type = 'info') {
-    // Hapus notifikasi sebelumnya
-    const oldNotification = document.querySelector('.notification');
-    if (oldNotification) oldNotification.remove();
-    
-    // Buat notifikasi baru
-    const notification = document.createElement('div');
-    notification.className = 'notification';
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: ${type === 'success' ? '#27ae60' : 
-                     type === 'error' ? '#e74c3c' : 
-                     type === 'warning' ? '#f39c12' : '#3498db'};
-        color: white;
-        padding: 15px 20px;
-        border-radius: 10px;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-        z-index: 9999;
-        animation: slideIn 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        max-width: 400px;
-    `;
-    
-    const icon = type === 'success' ? 'fa-check-circle' : 
-                 type === 'error' ? 'fa-exclamation-circle' : 
-                 type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
-    
-    notification.innerHTML = `
-        <i class="fas ${icon}"></i>
-        <span>${message}</span>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // Auto remove setelah 5 detik
-    setTimeout(() => {
-        notification.style.opacity = '0';
-        notification.style.transform = 'translateX(100px)';
-        setTimeout(() => notification.remove(), 300);
-    }, 5000);
+function showNotif(msg, type = 'info') {
+    const old = document.querySelector('.notif-toast');
+    if (old) old.remove();
+    const n = document.createElement('div');
+    n.className = 'notif-toast';
+    n.style.cssText = `position:fixed;top:20px;right:20px;padding:14px 20px;border-radius:8px;color:white;font-size:14px;z-index:9999;
+        background:${type==='success'?'#27ae60':type==='error'?'#e74c3c':type==='warning'?'#f39c12':'#3498db'}`;
+    n.textContent = msg;
+    document.body.appendChild(n);
+    setTimeout(() => n.remove(), 4000);
 }
 
-// 17. TAMBAHKAN STYLE ANIMASI
-(function addCustomStyles() {
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-        
-        .notification {
-            transition: all 0.3s ease;
-        }
-        
-        .bus-number {
-            font-size: 0.9rem;
-            color: #7f8c8d;
-            margin-top: 0.2rem;
-        }
-        
-        /* Style untuk schedule item di armada */
-        .schedule-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.5rem;
-            background: #f8f9fa;
-            border-radius: 6px;
-            margin-bottom: 0.3rem;
-        }
-        
-        .schedule-time {
-            font-weight: 600;
-            color: #2c3e50;
-            font-size: 0.95rem;
-        }
-        
-        .schedule-price {
-            color: #27ae60;
-            font-weight: 600;
-            font-size: 0.95rem;
-        }
-        
-        /* Style untuk fleet header */
-        .fleet-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.8rem;
-        }
-        
-        .fleet-header h4 {
-            color: #2c3e50;
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin: 0;
-        }
-        
-        .fleet-type {
-            background: #667eea;
-            color: white;
-            padding: 0.2rem 0.6rem;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-        
-        .fleet-details {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 0.8rem;
-            color: #4a5568;
-            font-size: 0.9rem;
-        }
-        
-        .fleet-facilities {
-            margin-top: 0.8rem;
-            padding-top: 0.8rem;
-            border-top: 1px dashed #e0e0e0;
-        }
-        
-        .fleet-facilities small {
-            color: #7f8c8d;
-            font-size: 0.85rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-    `;
-    document.head.appendChild(style);
-})();
+// styles tambahan
+const style = document.createElement('style');
+style.textContent = `
+    /* Armada Kami - Professional Black & Gold */
+    .fleet-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 14px; }
+    .fleet-item-pro {
+        background: linear-gradient(160deg, #1a1a1a 0%, #111 100%);
+        border: 1px solid rgba(212, 175, 55, 0.2);
+        border-radius: 16px;
+        padding: 28px 22px;
+        text-align: center;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+        cursor: default;
+        position: relative;
+        overflow: hidden;
+    }
+    .fleet-item-pro::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(to right, #d4af37, #f9d976, #d4af37);
+    }
+    .fleet-item-pro:hover { transform: translateY(-8px); box-shadow: 0 16px 40px rgba(0,0,0,0.7); border-color: rgba(212, 175, 55, 0.5); }
+    .fleet-icon-pro {
+        width: 70px; height: 70px;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 16px;
+        background: rgba(212, 175, 55, 0.1);
+        border: 2px solid rgba(212, 175, 55, 0.3);
+        font-size: 26px;
+        color: #d4af37;
+        transition: background 0.3s;
+    }
+    .fleet-item-pro:hover .fleet-icon-pro { background: rgba(212, 175, 55, 0.2); }
+    .fleet-tag-pro {
+        display: inline-block;
+        padding: 4px 14px;
+        border-radius: 20px;
+        font-size: 10px;
+        font-weight: 700;
+        margin-bottom: 10px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        background: rgba(212, 175, 55, 0.12);
+        color: #d4af37;
+        border: 1px solid rgba(212, 175, 55, 0.25);
+    }
+    .fleet-name-pro { font-weight: 800; font-size: 17px; margin-bottom: 8px; color: #fff; font-family: 'Playfair Display', serif; }
+    .fleet-desc-pro { font-size: 12px; color: #888; line-height: 1.6; margin-bottom: 14px; }
+    .fleet-fasilitas { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 4px; }
+    .fasilitas-item {
+        font-size: 10px;
+        padding: 3px 9px;
+        border-radius: 10px;
+        background: rgba(255,255,255,0.05);
+        color: #bbb;
+        border: 1px solid #333;
+        display: flex; align-items: center; gap: 4px;
+    }
+    .fasilitas-item i { color: #d4af37; font-size: 9px; }
+    @media (max-width: 900px) { .fleet-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 500px) { .fleet-grid { grid-template-columns: 1fr; } }
+    /* Kartu Bus Hasil Pencarian - Luxury Theme */
+    .bus-card {
+        background: #111;
+        border-radius: 16px;
+        padding: 0;
+        margin-bottom: 20px;
+        box-shadow: 0 5px 25px rgba(0,0,0,0.5);
+        overflow: hidden;
+        border: 1px solid rgba(212, 175, 55, 0.2);
+        transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+    }
+    .bus-card:hover { transform: translateY(-4px); box-shadow: 0 12px 35px rgba(0,0,0,0.7); border-color: rgba(212, 175, 55, 0.5); }
 
-console.log('🚀 Cari Tiket module loaded without time labels');
+    .bus-card-header {
+        background: linear-gradient(135deg, #151515, #222);
+        border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+        color: #d4af37;
+        padding: 16px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .bus-card-header h3 { margin: 0; font-size: 19px; font-weight: 800; font-family: 'Playfair Display', serif; letter-spacing: 0.5px; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
+    .bus-number { font-size: 13px; color: #aaa; margin-top: 4px; font-weight: 600; }
+    .bus-type-badge {
+        background: rgba(212, 175, 55, 0.1);
+        border: 1px solid rgba(212, 175, 55, 0.3);
+        color: #d4af37;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .bus-card-body { padding: 20px 24px; background: #0a0a0a; }
+
+    .route-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        margin-bottom: 20px;
+        background: #151515;
+        border-radius: 12px;
+        padding: 16px;
+        border: 1px solid #222;
+    }
+    .route-city { text-align: center; }
+    .route-city .city-name { font-weight: 800; font-size: 18px; color: #fff; }
+    .route-arrow {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: #d4af37;
+        flex: 1;
+    }
+    .route-arrow .arrow-line { width: 100%; height: 2px; background: linear-gradient(to right, #d4af37, #f9d976); position: relative; }
+    .route-arrow .arrow-line::after { content: '▶'; position: absolute; right: -6px; top: -8.5px; color: #f9d976; font-size: 14px; }
+    .route-arrow small { font-size: 12px; color: #888; margin-top: 6px; font-weight: 600; }
+
+    .bus-info-row {
+        display: flex;
+        gap: 16px;
+        font-size: 13px;
+        color: #aaa;
+        padding-top: 5px;
+    }
+    .bus-info-row span { display: flex; align-items: center; gap: 6px; font-weight: 500; }
+
+    .bus-card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 18px 24px;
+        border-top: 1px solid rgba(212, 175, 55, 0.15);
+        background: #111;
+    }
+    .price-tag { font-size: 26px; font-weight: 900; color: #f9d976; line-height: 1; }
+    .price-tag small { font-size: 13px; color: #888; font-weight: 500; display: block; margin-top: 4px; }
+    .select-btn {
+        background: linear-gradient(135deg, #d4af37, #b5952f);
+        color: #111; border: none;
+        padding: 14px 32px;
+        border-radius: 12px;
+        font-weight: 800;
+        cursor: pointer;
+        font-size: 15px;
+        transition: all 0.3s;
+        text-transform: uppercase;
+        box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+    }
+    .select-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(212, 175, 55, 0.5); background: linear-gradient(135deg, #f9d976, #d4af37); }
+`;
+document.head.appendChild(style);

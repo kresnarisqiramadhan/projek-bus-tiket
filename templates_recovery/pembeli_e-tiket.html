@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('main.static', filename='css/pembeli_e-tiket.css') }}">
+{% endblock %}
+{% block content %}
+<div class="ticket-box">
+    <h2>E-TIKET ANDA</h2>
+    <hr>
+    <p>Nama: {{ current_user.nama }}</p>
+    <p>Rute: Jakarta - Bandung</p>
+    <p>Status: <span style="color: green;">LUNAS</span></p>
+    <button onclick="window.print()">Cetak Tiket</button>
+</div>
+{% endblock %}

@@ -1,24 +1,105 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-    <title>Login Agen</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Agen - PT KRESNA PRIME MOBILITY</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pembeli_login.css') }}">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+          
+    <style>
+        /* Override primary button for agen to distinguish it slightly */
+        .login-btn {
+            background: linear-gradient(to right, #444, #222);
+            color: #d4af37;
+            border: 1px solid #d4af37;
+        }
+        .login-btn:hover {
+            box-shadow: 0 8px 15px rgba(212, 175, 55, 0.2);
+        }
+    </style>
 </head>
 <body>
 
-<h2>Login Agen</h2>
+    <!-- Background Animation -->
+    <div class="bg-animation"></div>
 
-<form method="POST">
-    <label>Email:</label><br>
-    <input type="email" name="email" required><br><br>
+    <!-- Login Container -->
+    <div class="login-container">
 
-    <label>Password:</label><br>
-    <input type="password" name="password" required><br><br>
+        <!-- Brand Header -->
+        <div class="brand-header">
+            <div class="brand-logo">
+                <i class="fas fa-user-tie"></i>
+            </div>
+            <h1 class="brand-title">Portal Agen</h1>
+            <p class="brand-subtitle">KRESNA PRIME MOBILITY</p>
+        </div>
 
-    <button type="submit">Login</button>
-</form>
+        <!-- Flash Message (Flask) -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-wrapper">
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">
+                        <i class="fas fa-info-circle"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% endwith %}
 
-<br>
-<a href="/">Kembali ke Home</a>
+        <!-- Login Form -->
+        <form method="POST" class="login-form">
 
+            <!-- Email -->
+            <div class="input-group">
+                <i class="fas fa-envelope input-icon"></i>
+                <input
+                    type="email"
+                    name="email"
+                    id="email"
+                    placeholder="Email Agen"
+                    required>
+            </div>
+
+            <!-- Password -->
+            <div class="input-group">
+                <i class="fas fa-lock input-icon"></i>
+                <input
+                    type="password"
+                    name="password"
+                    id="password"
+                    placeholder="Password"
+                    required>
+            </div>
+
+            <!-- Submit -->
+            <button type="submit" class="login-btn">
+                <i class="fas fa-sign-in-alt"></i>
+                <span>Masuk ke Panel Agen</span>
+            </button>
+
+            <!-- Divider -->
+            <div class="divider">
+                <span>ATAU</span>
+            </div>
+
+            <div class="register-link">
+                <p>
+                    <a href="/">
+                        <i class="fas fa-arrow-left"></i> Kembali ke Home
+                    </a>
+                </p>
+            </div>
+        </form>
+    </div>
 </body>
 </html>

@@ -12,19 +12,21 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <!-- Header -->
+        <!-- Header -->
     <header class="dashboard-header">
         <div class="header-content">
-            <div class="logo">
-                <h1><i class="fas fa-bus"></i> BusTicket<span>Online</span></h1>
-            </div>
+            <a href="{{ url_for('main.index') }}" class="logo">
+                <img src="{{ url_for('static', filename='img/logo-kresna.jpg') }}" alt="Logo Kresna">
+                <h1>PT KRESNA PRIME <span>MOBILITY</span></h1>
+            </a>
             
             <div class="user-menu">
                 <div class="welcome-text">
-                    <span class="greeting">Selamat datang</span>
+                    <span class="greeting" style="display: block; font-size: 0.8rem; color: #aaa;">Selamat datang,</span>
+                    <span class="user-name" style="color: #d4af37; font-weight: bold; font-size: 0.95rem;">{{ current_user.nama if current_user else nama }}</span>
                 </div>
                 <a href="{{ url_for('main.logout') }}" class="logout-btn">
-                    <i class="fas fa-sign-out-alt"></i> Logout
+                    <i class="fas fa-sign-out-alt"></i> Keluar
                 </a>
             </div>
         </div>
@@ -42,23 +44,21 @@
         <!-- Menu Options -->
         <div class="dashboard-menu">
             <a href="{{ url_for('main.pembeli_caritiket') }}" class="menu-card">
-                <h3><i class="fas fa-search"></i> Cari Tiket Bus</h3>
-                <p>Cari dan pesan tiket bus ke berbagai tujuan</p>
+                <div class="card-icon"><i class="fas fa-concierge-bell"></i></div>
+                <h3>Reservasi Tiket</h3>
+                <p>Rencanakan perjalanan premium Anda dengan armada eksklusif Kresna.</p>
             </a>
             
-            <a href="{{ url_for('main.pembeli_etiket') }}" class="menu-card">
-                <h3><i class="fas fa-ticket-alt"></i> E-Ticket Saya</h3>
-                <p>Lihat dan kelola tiket yang sudah dibeli</p>
-            </a>
-            
-            <a href="{{ url_for('main.pembeli_pemesanan') }}" class="menu-card">
-                <h3><i class="fas fa-history"></i> Riwayat Pemesanan</h3>
-                <p>Lihat history pemesanan tiket Anda</p>
+            <a href="{{ url_for('main.pembeli_riwayat') }}" class="menu-card">
+                <div class="card-icon"><i class="fas fa-passport"></i></div>
+                <h3>Perjalanan Saya</h3>
+                <p>Akses E-Tiket aktif Anda dan pantau riwayat perjalanan yang telah dilakukan.</p>
             </a>
             
             <a href="#" class="menu-card">
-                <h3><i class="fas fa-user-cog"></i> Profil Saya</h3>
-                <p>Kelola informasi akun dan data pribadi</p>
+                <div class="card-icon"><i class="fas fa-user-shield"></i></div>
+                <h3>Profil Keanggotaan</h3>
+                <p>Kelola preferensi akun VIP dan tingkatkan kenyamanan profil Anda.</p>
             </a>
         </div>
         

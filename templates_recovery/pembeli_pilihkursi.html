@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('main.static', filename='css/pembeli_pilihkursi.css') }}">
+{% endblock %}
+{% block content %}
+<h2>Pilih Kursi - {{ jadwal.bus_detail.nama_bus }}</h2>
+<div class="bus-layout">
+    <form action="{{ url_for('main.pemesanan') }}" method="POST">
+        <input type="hidden" name="jadwal_id" value="{{ jadwal.id }}">
+        <div class="seats">
+            {% for i in range(1, 11) %}
+                <label>
+                    <input type="checkbox" name="nomor_kursi" value="{{ i }}"> Kursi {{ i }}
+                </label>
+            {% endfor %}
+        </div>
+        <button type="submit">Lanjutkan Pemesanan</button>
+    </form>
+</div>
+{% endblock %}

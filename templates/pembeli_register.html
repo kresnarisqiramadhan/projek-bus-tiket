@@ -2,62 +2,153 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Register Pembeli - BusTicket Online</title>
-
-    <!-- Responsive -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar Akun - PT KRESNA PRIME MOBILITY</title>
 
     <!-- CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/pembeli_register.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}?v=1016">
 
-    <!-- JavaScript -->
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+          integrity="sha512-p1CmS8y+..."
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon"
+          href="{{ url_for('static', filename='img/favicon.ico') }}">
+
+    <!-- JS -->
     <script defer src="{{ url_for('static', filename='js/pembeli_register.js') }}"></script>
 </head>
 <body>
 
-    <div class="container">
-        <h2>Register Pembeli</h2>
+    <!-- Animated typography removed per user request -->
+    <ul class="bg-slideshow">
+        <li><span></span></li>
+        <li><span></span></li>
+        <li><span></span></li>
+    </ul>
 
-        <!-- FORM REGISTER -->
-        <form method="POST" id="registerForm">
-            
-            <!-- Nama -->
-            <input 
-                type="text" 
-                name="nama" 
-                id="nama" 
-                placeholder="Nama lengkap" 
-                required
-            >
-
-            <!-- Email -->
-            <input 
-                type="email" 
-                name="email" 
-                id="email" 
-                placeholder="Email" 
-                required
-            >
-
-            <!-- Password -->
-            <input 
-                type="password" 
-                name="password" 
-                id="password" 
-                placeholder="Buat password" 
-                required
-            >
-
-            <!-- Submit -->
-            <button type="submit">Daftar</button>
-        </form>
-
-        <!-- Link Login -->
-        <p class="login-link">
-            Sudah punya akun?
-            <a href="{{ url_for('main.pembeli_login') }}">Login</a>
-        </p>
+    <!-- Language Selector -->
+    <div class="language-selector">
+        <select id="languageSelect">
+            <option value="id">🇮🇩 Indonesia</option>
+            <option value="en">🇬🇧 English</option>
+        </select>
     </div>
 
+    <!-- Founder Art (Left Side) -->
+    <div class="hero-art">
+        <img src="{{ url_for('static', filename='img/founder_line_art_transparent.png') }}" alt="Founder Art">
+        <div class="founder-text-wrapper">
+            <div class="founder-name">Kresna Risqi Ramadhan</div>
+            <div class="founder-title">Pendiri PT KRESNA PRIME MOBILITY</div>
+        </div>
+    </div>
+
+    <!-- Login Container (Reused for Register) -->
+    <div class="login-container">
+
+        <!-- Header -->
+        <div class="login-header">
+            <div class="logo">
+                <img src="{{ url_for('static', filename='img/logo-kresna.jpg') }}" alt="Logo Kresna">
+            </div>
+            <h2>PT KRESNA PRIME MOBILITY</h2>
+            <p>Pendaftaran Akun Baru</p>
+        </div>
+
+        <!-- Flash Message (Flask) -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-wrapper">
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">
+                        <i class="fas fa-info-circle"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% endwith %}
+
+        <!-- Register Form -->
+        <form method="POST" id="registerForm" class="login-form" novalidate>
+            
+            <!-- Nama -->
+            <div class="input-group">
+                <i class="fas fa-user input-icon"></i>
+                <input 
+                    type="text" 
+                    name="nama" 
+                    id="nama" 
+                    placeholder="Nama lengkap" 
+                    required
+                >
+            </div>
+
+            <!-- Email -->
+            <div class="input-group">
+                <i class="fas fa-envelope input-icon"></i>
+                <input
+                    type="email"
+                    name="email"
+                    id="email"
+                    placeholder="Alamat Email"
+                    required
+                    autocomplete="email">
+            </div>
+
+            <!-- Password -->
+            <div class="input-group">
+                <i class="fas fa-lock input-icon"></i>
+                <input
+                    type="password"
+                    name="password"
+                    id="password"
+                    placeholder="Buat Password"
+                    required
+                    autocomplete="new-password">
+
+                <button
+                    type="button"
+                    id="togglePassword"
+                    class="password-toggle"
+                    aria-label="Tampilkan password">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+
+            <!-- Submit -->
+            <button type="submit" id="registerBtn" class="login-btn">
+                <i class="fas fa-user-plus"></i>
+                <span>Daftar Akun Baru</span>
+            </button>
+
+            <!-- Divider -->
+            <div class="divider">
+                <span>ATAU</span>
+            </div>
+
+            <!-- Register Link (Go back to login) -->
+            <div class="register-link">
+                <p>
+                    Sudah punya akun?
+                    <a href="{{ url_for('main.pembeli_login') }}">
+                        <i class="fas fa-sign-in-alt"></i> Masuk Sekarang
+                    </a>
+                </p>
+            </div>
+        </form>
+
+        <!-- Security Notice -->
+        <div class="security-notice">
+            <i class="fas fa-shield-alt"></i>
+            Data Anda terlindungi dengan enkripsi SSL 256-bit
+        </div>
+    </div>
 </body>
 </html>

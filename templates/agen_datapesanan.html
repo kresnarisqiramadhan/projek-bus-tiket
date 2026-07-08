@@ -1,38 +1,41 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Data Pesanan</title>
 </head>
+
 <body>
 
-<h2>Data Pesanan</h2>
+    <h2>Data Pesanan</h2>
 
-<table border="1" cellpadding="5">
-    <tr>
-        <th>ID</th>
-        <th>Nama Pembeli</th>
-        <th>Bus</th>
-        <th>Kursi</th>
-        <th>Harga</th>
-        <th>Status</th>
-        <th>Kode E-Receipt</th>
-    </tr>
+    <table border="1" cellpadding="5">
+        <tr>
+            <th>ID</th>
+            <th>Nama Pembeli</th>
+            <th>Bus</th>
+            <th>Kursi</th>
+            <th>Harga</th>
+            <th>Status</th>
+            <th>Kode E-Receipt</th>
+        </tr>
 
-    {% for p in pesanan %}
-    <tr>
-        <td>{{ p.id }}</td>
-        <td>{{ p.nama }}</td>
-        <td>{{ p.bus }}</td>
-        <td>{{ p.kursi }}</td>
-        <td>Rp {{ p.harga }}</td>
-        <td>{{ p.status }}</td>
-        <td>{{ p.receipt }}</td>
-    </tr>
-    {% endfor %}
-</table>
+        {% for p in pesanan %}
+        <tr>
+            <td>{{ p.id }}</td>
+            <td>{{ p.nama }}</td>
+            <td>{{ p.bus }}</td>
+            <td>{{ p.kursi }}</td>
+            <td>Rp {{ p.harga }}</td>
+            <td>{{ p.status }}</td>
+            <td>{{ p.receipt }}</td>
+        </tr>
+        {% endfor %}
+    </table>
 
-<br>
-<a href="/agen/dashboard">Kembali ke Dashboard</a>
+    <br>
+    <a href="/agen/dashboard">Kembali ke Dashboard</a>
 
 </body>
+
 </html>

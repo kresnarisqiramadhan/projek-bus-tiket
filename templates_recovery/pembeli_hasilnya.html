@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('main.static', filename='css/pembeli_hasilnya.css') }}">
+{% endblock %}
+{% block content %}
+<h2>Hasil Pencarian: {{ asal }} ke {{ tujuan }}</h2>
+
+{% if jadwal %}
+    <div class="tiket-container">
+    {% for item in jadwal %}
+        <div class="tiket-card">
+            <h3>{{ item.bus_detail.nama_bus }}</h3>
+            <p>Tipe: {{ item.bus_detail.tipe_bus }}</p>
+            <p>Waktu: {{ item.waktu_berangkat }}</p>
+            <p>Harga: Rp {{ "{:,.0f}".format(item.harga) }}</p>
+            <a href="{{ url_for('main.pilih_kursi', jadwal_id=item.id) }}" class="btn">Pilih Kursi</a>
+        </div>
+    {% endfor %}
+    </div>
+{% else %}
+    <p>Maaf, jadwal tidak ditemukan untuk rute ini.</p>
+    <a href="{{ url_for('main.cari_tiket') }}">Cari rute lain</a>
+{% endif %}
+{% endblock %}

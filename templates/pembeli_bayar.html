@@ -133,13 +133,7 @@
                         <div class="method-desc">Visa, Mastercard</div>
                     </div>
                     
-                    <div class="method-card" data-method="convenience-store">
-                        <div class="method-icon">
-                            <i class="fas fa-store"></i>
-                        </div>
-                        <div class="method-name">Gerai Retail</div>
-                        <div class="method-desc">Alfamart, Indomaret</div>
-                    </div>
+
                 </div>
                 
                 <!-- Payment Instructions -->
@@ -148,34 +142,7 @@
                 </div>
             </div>
 
-            <!-- Upload Bukti Pembayaran -->
-            <h2 class="section-title">
-                <i class="fas fa-upload"></i>
-                Upload Bukti Pembayaran
-            </h2>
-            
-            <div id="uploadSection" class="upload-section">
-                <div class="upload-icon">
-                    <i class="fas fa-cloud-upload-alt"></i>
-                </div>
-                
-                <div class="upload-instructions">
-                    <h3>Upload Bukti Transfer</h3>
-                    <p>Format yang didukung: JPG, PNG, PDF (Maks. 5MB)</p>
-                </div>
-                
-                <div class="file-upload">
-                    <button id="uploadBtn" class="upload-btn">
-                        <i class="fas fa-file-upload me-2"></i>
-                        Pilih File
-                    </button>
-                    <input type="file" id="fileInput" name="bukti" accept=".jpg,.jpeg,.png,.pdf" required>
-                    
-                    <div id="filePreview" class="file-preview">
-                        <!-- File preview will be shown here -->
-                    </div>
-                </div>
-            </div>
+
 
             <!-- Price Breakdown -->
             <div class="price-breakdown" style="margin-top: 30px;">
@@ -195,10 +162,10 @@
 
             <!-- Action Buttons -->
             <div class="action-buttons">
-                <form id="paymentForm" method="POST" enctype="multipart/form-data">
-                    <button type="submit" id="submitBtn" class="btn btn-success" disabled>
-                        <i class="fas fa-paper-plane"></i>
-                        Kirim Bukti Pembayaran
+                <form id="paymentForm" method="POST">
+                    <button type="submit" id="submitBtn" class="btn btn-success">
+                        <i class="fas fa-check-circle"></i>
+                        Saya Sudah Bayar
                     </button>
                 </form>
                 

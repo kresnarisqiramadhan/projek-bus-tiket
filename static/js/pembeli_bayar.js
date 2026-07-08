@@ -65,7 +65,10 @@ function loadFromUrlParams() {
         busName: urlParams.get('bus') || 'Suite Class',
         origin: urlParams.get('origin') || 'Jakarta',
         destination: urlParams.get('destination') || 'Bandung',
-        date: urlParams.get('date') || new Date().toISOString().split('T')[0]
+        date: urlParams.get('date') || new Date().toISOString().split('T')[0],
+        tanggalBerangkat: urlParams.get('date') || new Date().toISOString().split('T')[0],
+        jamBerangkat: urlParams.get('time') || '08:00',
+        scheduleId: urlParams.get('scheduleId') || ''
     };
     
     displayPaymentData(data);
@@ -74,18 +77,21 @@ function loadFromUrlParams() {
 function displayPaymentData(data) {
     // Update booking info
     document.getElementById('booking-id').textContent = data.bookingId || generateBookingId();
-    document.getElementById('id-bus').textContent = data.id_bus || 'BUS-001';
+    document.getElementById('id-bus').textContent = data.busName || data.scheduleId || 'BUS-001';
     
     // Format kursi
-    const kursiList = Array.isArray(data.kursi) ? data.kursi.join(', ') : data.kursi;
-    document.getElementById('kursi-list').textContent = kursiList || 'A1, B2';
+    const actualSeats = data.seats || data.kursi;
+    const kursiList = Array.isArray(actualSeats) ? actualSeats.join(', ') : actualSeats;
+    document.getElementById('kursi-list').textContent = kursiList || 'Tidak ada kursi';
     
     // Calculate total
-    const basePrice = data.totalAmount || data.basePrice || 450000;
+    const basePrice = data.price || data.totalAmount || data.basePrice || 450000;
     const seatCount = Array.isArray(data.kursi) ? data.kursi.length : 
                      (data.seats ? data.seats.length : 2);
-    const subtotal = basePrice * seatCount;
-    const serviceFee = Math.round(subtotal * 0.1);
+                     
+    // Gunakan totalPrice dari pilihkursi jika ada, jika tidak kalikan basePrice * seatCount
+    const subtotal = data.totalPrice || (basePrice * seatCount);
+    const serviceFee = 0; // Dihilangkan agar total akhir sinkron 100% dengan total kursi
     const grandTotal = subtotal + serviceFee;
     
     // Display amounts
@@ -116,21 +122,11 @@ function setupAllEventListeners() {
         });
     });
     
-    // File upload
-    document.getElementById('uploadBtn').addEventListener('click', () => {
-        document.getElementById('fileInput').click();
-    });
-    
-    document.getElementById('fileInput').addEventListener('change', handleFileUpload);
-    
-    // Drag and drop
-    const uploadSection = document.getElementById('uploadSection');
-    uploadSection.addEventListener('dragover', handleDragOver);
-    uploadSection.addEventListener('dragleave', handleDragLeave);
-    uploadSection.addEventListener('drop', handleDrop);
-    
     // Form submission
     document.getElementById('paymentForm').addEventListener('submit', handleFormSubmit);
+    
+    // Enable submit button automatically
+    document.getElementById('submitBtn').disabled = false;
     
     // Navigation buttons
     document.getElementById('backBtn').addEventListener('click', () => {
@@ -167,13 +163,8 @@ function selectPaymentMethod(method) {
     
     // Update submit button text
     const submitBtn = document.getElementById('submitBtn');
-    if (method === 'credit-card') {
-        submitBtn.innerHTML = '<i class="fas fa-lock"></i> Bayar Sekarang';
-        submitBtn.disabled = false;
-    } else {
-        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Kirim Bukti Pembayaran';
-        submitBtn.disabled = !uploadedFile;
-    }
+    submitBtn.innerHTML = '<i class="fas fa-check-circle me-2"></i> Saya Sudah Bayar';
+    submitBtn.disabled = false;
     
     console.log(`✅ Selected payment method: ${method}`);
 }
@@ -185,29 +176,43 @@ function showPaymentInstructions(method) {
     switch(method) {
         case 'bank-transfer':
             html = `
-                <div style="background: #e7f5ff; padding: 20px; border-radius: 12px; border-left: 4px solid #007bff;">
-                    <h4 style="color: #007bff; margin-bottom: 15px;">
-                        <i class="fas fa-university"></i> Transfer Bank
+                <div style="background: #1a1a1a; padding: 20px; border-radius: 12px; border-left: 4px solid #d4af37; border-top: 1px solid #333; border-right: 1px solid #333; border-bottom: 1px solid #333;">
+                    <h4 style="color: #d4af37; margin-bottom: 15px; font-weight: 700;">
+                        <i class="fas fa-university"></i> Transfer Bank Resmi
                     </h4>
-                    <div class="virtual-account-display">
-                        8880 1234 5678 9012
-                        <button onclick="copyToClipboard('8880123456789012')" 
-                                style="background: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 5px; margin-left: 10px; cursor: pointer;">
-                            <i class="fas fa-copy"></i> Salin
-                        </button>
+                    <p style="margin-bottom: 15px; color: #aaa;">Pilih dan transfer ke salah satu rekening resmi PT Kresna Prime Mobility di bawah ini:</p>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px;">
+                        <div style="background: #252525; padding: 15px; border-radius: 8px; border: 1px solid #444; transition: 0.3s;" onmouseover="this.style.borderColor='#d4af37'" onmouseout="this.style.borderColor='#444'">
+                            <strong style="color: #fff; font-size: 1.1rem; display: block; margin-bottom: 5px;">BCA</strong>
+                            <span style="font-family: monospace; font-size: 1.2rem; color: #d4af37; display: block;">8880 1234 5678</span>
+                            <small style="color: #888; font-size: 0.8rem; margin-top: 5px; display: block;">PT KRESNA PRIME MOBILITY</small>
+                        </div>
+                        <div style="background: #252525; padding: 15px; border-radius: 8px; border: 1px solid #444; transition: 0.3s;" onmouseover="this.style.borderColor='#d4af37'" onmouseout="this.style.borderColor='#444'">
+                            <strong style="color: #fff; font-size: 1.1rem; display: block; margin-bottom: 5px;">Mandiri</strong>
+                            <span style="font-family: monospace; font-size: 1.2rem; color: #d4af37; display: block;">1370 0000 1234</span>
+                            <small style="color: #888; font-size: 0.8rem; margin-top: 5px; display: block;">PT KRESNA PRIME MOBILITY</small>
+                        </div>
+                        <div style="background: #252525; padding: 15px; border-radius: 8px; border: 1px solid #444; transition: 0.3s;" onmouseover="this.style.borderColor='#d4af37'" onmouseout="this.style.borderColor='#444'">
+                            <strong style="color: #fff; font-size: 1.1rem; display: block; margin-bottom: 5px;">BRI</strong>
+                            <span style="font-family: monospace; font-size: 1.2rem; color: #d4af37; display: block;">0001 0100 1234</span>
+                            <small style="color: #888; font-size: 0.8rem; margin-top: 5px; display: block;">PT KRESNA PRIME MOBILITY</small>
+                        </div>
+                        <div style="background: #252525; padding: 15px; border-radius: 8px; border: 1px solid #444; transition: 0.3s;" onmouseover="this.style.borderColor='#d4af37'" onmouseout="this.style.borderColor='#444'">
+                            <strong style="color: #fff; font-size: 1.1rem; display: block; margin-bottom: 5px;">BNI</strong>
+                            <span style="font-family: monospace; font-size: 1.2rem; color: #d4af37; display: block;">0987 6543 21</span>
+                            <small style="color: #888; font-size: 0.8rem; margin-top: 5px; display: block;">PT KRESNA PRIME MOBILITY</small>
+                        </div>
                     </div>
-                    <div style="margin-top: 15px;">
-                        <div class="info-bullet">
-                            <i class="fas fa-info-circle"></i>
-                            <span>Transfer ke Virtual Account di atas</span>
+                    
+                    <div style="margin-top: 15px; background: #121212; padding: 15px; border-radius: 8px;">
+                        <div class="info-bullet" style="color: #ccc;">
+                            <i class="fas fa-info-circle" style="color: #d4af37;"></i>
+                            <span>Atas Nama: <strong style="color: #fff;">PT KRESNA PRIME MOBILITY</strong></span>
                         </div>
-                        <div class="info-bullet">
-                            <i class="fas fa-clock"></i>
-                            <span>Batas waktu: 30 menit</span>
-                        </div>
-                        <div class="info-bullet">
-                            <i class="fas fa-check-circle"></i>
-                            <span>Upload bukti transfer setelah membayar</span>
+                        <div class="info-bullet" style="color: #ccc;">
+                            <i class="fas fa-check-circle" style="color: #d4af37;"></i>
+                            <span>Pastikan nominal transfer sesuai hingga 3 digit terakhir.</span>
                         </div>
                     </div>
                 </div>
@@ -216,94 +221,28 @@ function showPaymentInstructions(method) {
             
         case 'e-wallet':
             html = `
-                <div style="background: #fff8e1; padding: 20px; border-radius: 12px; border-left: 4px solid #ff9800;">
-                    <h4 style="color: #ff9800; margin-bottom: 15px;">
-                        <i class="fas fa-mobile-alt"></i> E-Wallet
+                <div style="background: #1a1a1a; padding: 20px; border-radius: 12px; border-left: 4px solid #d4af37; border-top: 1px solid #333; border-right: 1px solid #333; border-bottom: 1px solid #333;">
+                    <h4 style="color: #d4af37; margin-bottom: 15px; font-weight: 700;">
+                        <i class="fas fa-qrcode"></i> E-Wallet & QRIS
                     </h4>
-                    <div style="text-align: center; margin: 20px 0;">
-                        <div style="font-size: 1.5rem; font-weight: bold; color: #28a745; margin-bottom: 15px;">
-                            ${formatCurrency(window.paymentData?.grandTotal || 495000)}
-                        </div>
-                        <button onclick="showQRModal()" 
-                                style="background: linear-gradient(135deg, #ff9800, #ff5722); color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; cursor: pointer;">
-                            <i class="fas fa-qrcode"></i> Tampilkan QR Code
+                    <p style="margin-bottom: 15px; color: #aaa;">Mendukung pembayaran instan dari semua dompet digital (GoPay, OVO, DANA, ShopeePay) dan Mobile Banking.</p>
+                    
+                    <div style="text-align: center; margin: 25px 0;">
+                        <button onclick="showQRModal()" type="button"
+                                style="background: linear-gradient(135deg, #d4af37, #b5952f); color: #121212; border: none; padding: 14px 30px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 1.1rem;"
+                                onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 5px 15px rgba(212,175,55,0.3)'" 
+                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                            <i class="fas fa-qrcode me-2"></i> Tampilkan QR Code Pembayaran
                         </button>
                     </div>
-                    <div>
-                        <div class="info-bullet">
-                            <i class="fas fa-info-circle"></i>
-                            <span>Scan QR Code dengan aplikasi e-wallet</span>
+                    <div style="background: #121212; padding: 15px; border-radius: 8px;">
+                        <div class="info-bullet" style="color: #ccc;">
+                            <i class="fas fa-info-circle" style="color: #d4af37;"></i>
+                            <span>Scan QR Code menggunakan aplikasi E-Wallet atau M-Banking Anda.</span>
                         </div>
-                        <div class="info-bullet">
-                            <i class="fas fa-clock"></i>
-                            <span>Batas waktu: 30 menit</span>
-                        </div>
-                        <div class="info-bullet">
-                            <i class="fas fa-check-circle"></i>
-                            <span>Pembayaran diverifikasi otomatis</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-            break;
-            
-        case 'credit-card':
-            html = `
-                <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; border-left: 4px solid #6c757d;">
-                    <h4 style="color: #6c757d; margin-bottom: 15px;">
-                        <i class="fas fa-credit-card"></i> Kartu Kredit
-                    </h4>
-                    <div style="margin: 20px 0;">
-                        <div style="margin-bottom: 15px;">
-                            <label style="display: block; margin-bottom: 5px; color: #495057;">Nomor Kartu</label>
-                            <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" 
-                                   style="width: 100%; padding: 10px; border: 2px solid #ced4da; border-radius: 6px; font-size: 16px; letter-spacing: 2px;"
-                                   maxlength="19">
-                        </div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                            <div>
-                                <label style="display: block; margin-bottom: 5px; color: #495057;">Masa Berlaku</label>
-                                <input type="text" id="cardExpiry" placeholder="MM/YY" 
-                                       style="width: 100%; padding: 10px; border: 2px solid #ced4da; border-radius: 6px; font-size: 16px;"
-                                       maxlength="5">
-                            </div>
-                            <div>
-                                <label style="display: block; margin-bottom: 5px; color: #495057;">CVV</label>
-                                <input type="password" id="cardCVV" placeholder="123" 
-                                       style="width: 100%; padding: 10px; border: 2px solid #ced4da; border-radius: 6px; font-size: 16px;"
-                                       maxlength="3">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="info-bullet">
-                        <i class="fas fa-lock" style="color: #28a745;"></i>
-                        <span>Transaksi dijamin aman dengan enkripsi SSL</span>
-                    </div>
-                </div>
-            `;
-            break;
-            
-        case 'convenience-store':
-            html = `
-                <div style="background: #e8f5e9; padding: 20px; border-radius: 12px; border-left: 4px solid #4caf50;">
-                    <h4 style="color: #4caf50; margin-bottom: 15px;">
-                        <i class="fas fa-store"></i> Gerai Retail
-                    </h4>
-                    <div class="virtual-account-display" style="text-align: center; font-size: 1.4rem; letter-spacing: 3px;">
-                        888 1234 5678
-                    </div>
-                    <div style="margin-top: 20px;">
-                        <div class="info-bullet">
-                            <i class="fas fa-info-circle"></i>
-                            <span>Tunjukkan kode di gerai Alfamart/Indomaret</span>
-                        </div>
-                        <div class="info-bullet">
-                            <i class="fas fa-clock"></i>
-                            <span>Batas waktu: 24 jam</span>
-                        </div>
-                        <div class="info-bullet">
-                            <i class="fas fa-check-circle"></i>
-                            <span>Tanpa biaya admin tambahan</span>
+                        <div class="info-bullet" style="color: #ccc;">
+                            <i class="fas fa-check-circle" style="color: #d4af37;"></i>
+                            <span>Sistem kami akan memverifikasi pembayaran Anda secara otomatis.</span>
                         </div>
                     </div>
                 </div>
@@ -312,117 +251,11 @@ function showPaymentInstructions(method) {
     }
     
     container.innerHTML = html;
-    
-    // Add event listeners for credit card inputs
-    if (method === 'credit-card') {
-        setupCreditCardInputs();
-    }
 }
 
 // ============================================
-// 3. FILE UPLOAD HANDLING
+// 3. FILE UPLOAD HANDLING (REMOVED FOR GATEWAY SIMULATION)
 // ============================================
-function handleDragOver(e) {
-    e.preventDefault();
-    document.getElementById('uploadSection').classList.add('drag-over');
-}
-
-function handleDragLeave(e) {
-    e.preventDefault();
-    document.getElementById('uploadSection').classList.remove('drag-over');
-}
-
-function handleDrop(e) {
-    e.preventDefault();
-    document.getElementById('uploadSection').classList.remove('drag-over');
-    
-    if (e.dataTransfer.files.length) {
-        processFile(e.dataTransfer.files[0]);
-    }
-}
-
-function handleFileUpload(e) {
-    if (e.target.files.length) {
-        processFile(e.target.files[0]);
-    }
-}
-
-function processFile(file) {
-    // Validate file
-    if (!validateFile(file)) return;
-    
-    uploadedFile = file;
-    
-    // Show preview
-    showFilePreview(file);
-    
-    // Enable submit button for non-credit card methods
-    if (selectedPaymentMethod !== 'credit-card') {
-        document.getElementById('submitBtn').disabled = false;
-    }
-    
-    showNotification('File berhasil diupload!', 'success');
-}
-
-function validateFile(file) {
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
-    
-    if (!allowedTypes.includes(file.type)) {
-        showNotification('Format file tidak didukung. Gunakan JPG, PNG, atau PDF.', 'error');
-        return false;
-    }
-    
-    if (file.size > maxSize) {
-        showNotification('File terlalu besar. Maksimal 5MB.', 'error');
-        return false;
-    }
-    
-    return true;
-}
-
-function showFilePreview(file) {
-    const previewDiv = document.getElementById('filePreview');
-    
-    if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            previewDiv.innerHTML = `
-                <img src="${e.target.result}" class="preview-image" alt="Preview">
-                <div class="file-info">
-                    <i class="fas fa-file-image"></i>
-                    ${file.name} (${formatFileSize(file.size)})
-                    <button onclick="removeFile()" style="background: #dc3545; color: white; border: none; padding: 3px 8px; border-radius: 4px; margin-left: 10px; cursor: pointer;">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            `;
-        };
-        reader.readAsDataURL(file);
-    } else {
-        previewDiv.innerHTML = `
-            <div class="file-info">
-                <i class="fas fa-file-pdf"></i>
-                ${file.name} (${formatFileSize(file.size)})
-                <button onclick="removeFile()" style="background: #dc3545; color: white; border: none; padding: 3px 8px; border-radius: 4px; margin-left: 10px; cursor: pointer;">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        `;
-    }
-}
-
-function removeFile() {
-    uploadedFile = null;
-    document.getElementById('filePreview').innerHTML = '';
-    document.getElementById('fileInput').value = '';
-    
-    if (selectedPaymentMethod !== 'credit-card') {
-        document.getElementById('submitBtn').disabled = true;
-    }
-    
-    showNotification('File dihapus', 'info');
-}
 
 // ============================================
 // 4. PAYMENT PROCESSING
@@ -435,29 +268,23 @@ function handleFormSubmit(e) {
         if (!validateCreditCard()) {
             return;
         }
-    } else if (!uploadedFile) {
-        showNotification('Silakan upload bukti pembayaran terlebih dahulu', 'error');
-        return;
     }
     
-    // Show confirmation
+    // Show confirmation (Gateway Simulation)
     Swal.fire({
-        title: 'Konfirmasi Pembayaran',
+        title: 'Verifikasi Pembayaran',
         html: `
             <div style="text-align: left; padding: 15px;">
+                <p>Sistem akan memverifikasi mutasi rekening/QRIS untuk transaksi ini.</p>
                 <p><strong>Metode:</strong> ${getPaymentMethodName(selectedPaymentMethod)}</p>
                 <p><strong>Total:</strong> ${formatCurrency(window.paymentData?.grandTotal || 495000)}</p>
-                ${selectedPaymentMethod === 'credit-card' ? 
-                    '<p><i class="fas fa-lock"></i> Transaksi aman terenkripsi</p>' : 
-                    `<p><strong>File:</strong> ${uploadedFile?.name || 'Bukti Transfer'}</p>`
-                }
             </div>
         `,
-        icon: 'question',
+        icon: 'info',
         showCancelButton: true,
-        confirmButtonColor: '#28a745',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Ya, Lanjutkan',
+        confirmButtonColor: '#d4af37',
+        cancelButtonColor: '#333',
+        confirmButtonText: 'Ya, Cek Status Pembayaran',
         cancelButtonText: 'Batal',
         width: 500
     }).then((result) => {
@@ -508,42 +335,80 @@ function processPayment() {
         const transactionData = {
             ...window.paymentData,
             paymentMethod: selectedPaymentMethod,
-            paymentFile: uploadedFile?.name || 'credit-card',
             paymentTime: new Date().toISOString(),
             paymentStatus: 'success',
             transactionId: generateTransactionId(),
-            referenceNumber: 'PAY-' + Date.now()
+            referenceNumber: 'PAY-' + Date.now(),
+            tanggalBerangkat: window.paymentData.tanggalBerangkat || window.paymentData.date,
+            jamBerangkat: window.paymentData.jamBerangkat,
+            jadwalId: window.paymentData.scheduleId || window.paymentData.jadwalId
         };
         
-        localStorage.setItem('transactionData', JSON.stringify(transactionData));
-        
-        // Clear timer
-        if (paymentTimer) {
-            clearInterval(paymentTimer);
+        const formData = new FormData();
+        // Memasukkan data string ke formData
+        for (const key in transactionData) {
+            if (key === 'seats' || key === 'kursi' || Array.isArray(transactionData[key])) {
+                formData.append(key, JSON.stringify(transactionData[key]));
+            } else if (typeof transactionData[key] === 'object' && transactionData[key] !== null) {
+                formData.append(key, JSON.stringify(transactionData[key]));
+            } else {
+                formData.append(key, transactionData[key]);
+            }
         }
-        
-        // Show success
-        Swal.fire({
-            title: 'Pembayaran Berhasil!',
-            html: `
-                <div style="text-align: center; padding: 20px;">
-                    <div style="font-size: 4rem; color: #28a745; margin-bottom: 20px;">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                    <p style="font-size: 1.2rem; margin-bottom: 15px;">
-                        Tiket Anda telah diproses
-                    </p>
-                    <p style="color: #666; margin-bottom: 10px;">
-                        No. Referensi: <strong>${transactionData.referenceNumber}</strong>
-                    </p>
-                </div>
-            `,
-            icon: 'success',
-            confirmButtonColor: '#28a745',
-            confirmButtonText: 'Lihat Tiket'
-        }).then(() => {
-            // Redirect to ticket page
-           window.location.href = '/pembeli/e-tiket?ref=' + transactionData.referenceNumber;
+
+        fetch('/api/pembayaran', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (response.redirected) {
+                window.location.href = response.url;
+                throw new Error('Sesi berakhir, silakan login kembali');
+            }
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(result => {
+            if (result.success) {
+                localStorage.setItem('transactionData', JSON.stringify(transactionData));
+                console.log('Data tersimpan:', result);
+                
+                // Clear timer
+                if (paymentTimer) {
+                    clearInterval(paymentTimer);
+                }
+                
+                // Show success
+                Swal.fire({
+                    title: 'Pembayaran Berhasil Dikirim!',
+                    html: `
+                        <div style="text-align: center; padding: 20px;">
+                            <div style="font-size: 4rem; color: #28a745; margin-bottom: 20px;">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <p style="font-size: 1.2rem; margin-bottom: 15px;">
+                                Pembayaran Anda sedang kami proses. E-Tiket akan tersedia setelah diverifikasi oleh Admin.
+                            </p>
+                            <p style="color: #666; margin-bottom: 10px;">
+                                No. Referensi: <strong>${transactionData.referenceNumber}</strong>
+                            </p>
+                        </div>
+                    `,
+                    icon: 'success',
+                    confirmButtonColor: '#28a745',
+                    confirmButtonText: 'Cek Riwayat Pemesanan'
+                }).then(() => {
+                    window.location.href = '/pembeli/riwayat';
+                });
+            } else {
+                Swal.fire('Gagal!', result.message || 'Terjadi kesalahan saat memproses pembayaran', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Gagal simpan:', error);
+            Swal.fire('Error!', 'Terjadi kesalahan pada server. Silakan coba lagi.', 'error');
         });
     }, 2000);
 }
@@ -587,7 +452,12 @@ function updateTimerDisplay() {
 // 6. UTILITY FUNCTIONS
 // ============================================
 function formatCurrency(amount) {
-    return 'Rp ' + amount.toLocaleString('id-ID');
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(amount);
 }
 
 function formatFileSize(bytes) {

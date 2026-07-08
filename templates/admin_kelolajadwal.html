@@ -1,41 +1,618 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-    <title>Kelola Jadwal Bus</title>
+    <title>Kelola Jadwal Bus (Rute Harian)</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg-main);
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .header h2 {
+            font-size: 20px;
+            color: white;
+            margin: 0;
+        }
+
+        .back-link {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            opacity: 0.9;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+
+        .back-link:hover {
+            opacity: 1;
+            transform: translateX(-2px);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .info-banner {
+            background: var(--success-bg);
+            border-left: 4px solid var(--success-color);
+            padding: 16px 20px;
+            border-radius: var(--radius-md);
+            margin-bottom: 24px;
+            font-size: 14px;
+            color: var(--success-hover);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .info-banner strong {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 15px;
+            color: var(--success-hover);
+        }
+
+        .alert {
+            padding: 12px 20px;
+            border-radius: var(--radius-md);
+            margin-bottom: 20px;
+            font-size: 14px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .alert-success {
+            background: var(--success-bg);
+            color: var(--success-hover);
+            border-left: 4px solid var(--success-color);
+        }
+
+        .alert-error {
+            background: var(--danger-bg);
+            color: var(--danger-hover);
+            border-left: 4px solid var(--danger-color);
+        }
+
+        .btn-add {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2);
+            transition: all var(--transition-normal);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-add:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        .table-wrap {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        thead th {
+            background: var(--bg-main);
+            color: var(--text-secondary);
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        tbody td {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+            vertical-align: middle;
+        }
+
+        tbody tr {
+            transition: background var(--transition-fast);
+        }
+
+        tbody tr:hover {
+            background: var(--primary-light);
+        }
+
+        .empty {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 99px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .badge-aktif {
+            background: var(--success-bg);
+            color: var(--success-hover);
+        }
+
+        .badge-nonaktif {
+            background: #f1f5f9;
+            color: var(--text-secondary);
+        }
+
+        .badge-daily {
+            background: var(--primary-light);
+            color: var(--primary-color);
+        }
+
+        .btn-edit {
+            background: var(--warning-color);
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 13px;
+            margin-right: 6px;
+            font-weight: 500;
+            transition: all var(--transition-fast);
+        }
+
+        .btn-edit:hover {
+            background: #d97706;
+        }
+
+        .btn-delete {
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all var(--transition-fast);
+        }
+
+        .btn-delete:hover {
+            background: var(--danger-hover);
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.6);
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            animation: fadeIn var(--transition-fast);
+        }
+
+        .modal-box {
+            background: var(--bg-card);
+            padding: 32px;
+            border-radius: var(--radius-xl);
+            width: 90%;
+            max-width: 500px;
+            box-shadow: var(--shadow-xl);
+            border: 1px solid var(--border-color);
+            animation: slideUp var(--transition-fast);
+        }
+
+        .modal-box h3 {
+            margin-bottom: 24px;
+            color: var(--text-primary);
+            font-size: 20px;
+            font-weight: 700;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            transition: border-color var(--transition-fast);
+            color: var(--text-primary);
+            background: var(--bg-main);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--primary-light);
+            background: white;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 16px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 28px;
+        }
+
+        .btn-save {
+            flex: 1;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .btn-save:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-cancel {
+            flex: 1;
+            background: var(--bg-main);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .btn-cancel:hover {
+            background: #e2e8f0;
+            color: var(--text-primary);
+        }
+
+        .hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 6px;
+            display: block;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
 </head>
+
 <body>
 
-<h2>Kelola Jadwal Bus</h2>
+    <!-- Navbar -->
+    <nav class="top-navbar">
+        <a href="{{ url_for('main.admin_dashboard') }}" class="nav-brand">
+            <img src="{{ url_for('static', filename='img/logo-kresna.jpg') }}" alt="Logo Kresna"
+                style="height: 40px; object-fit: contain;">
+            <span>PT KRESNA PRIME MOBILITY</span>
+        </a>
+        <div class="nav-links">
+            <a href="{{ url_for('main.admin_dashboard') }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            <a href="{{ url_for('main.admin_jadwal') }}" class="active"><i class="fas fa-calendar-alt"></i> Kelola
+                Jadwal</a>
+            <a href="{{ url_for('main.admin_laporan') }}"><i class="fas fa-chart-line"></i> Laporan</a>
+            <a href="{{ url_for('main.logout') }}" class="nav-logout"
+                onclick="return confirm('Apakah Anda yakin ingin keluar?')"><i class="fas fa-sign-out-alt"></i>
+                Keluar</a>
+        </div>
+    </nav>
 
-<a href="#">+ Tambah Jadwal</a>
+    <div class="container" style="margin-top: 30px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+            <h2 style="color: var(--primary-color);"><i class="fas fa-bus"></i> Kelola Rute Bus Harian</h2>
+        </div>
+        <!-- Info Banner -->
+        <div class="info-banner">
+            <strong><i class="fas fa-info-circle"></i> Bus beroperasi setiap hari secara otomatis!</strong>
+            Anda cukup menambahkan rute bus 1x saja. Sistem otomatis membuat jadwal tersedia setiap hari.
+            User (pembeli) yang akan memilih tanggal keberangkatan saat memesan tiket.
+        </div>
 
-<br><br>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
 
-<table border="1" cellpadding="5">
-    <tr>
-        <th>ID</th>
-        <th>Asal</th>
-        <th>Tujuan</th>
-        <th>Jam</th>
-        <th>Aksi</th>
-    </tr>
+        <button class="btn-add" onclick="openAddModal()"><i class="fas fa-plus"></i> Tambah Rute Bus</button>
 
-    {% for j in jadwal %}
-    <tr>
-        <td>{{ j.id }}</td>
-        <td>{{ j.asal }}</td>
-        <td>{{ j.tujuan }}</td>
-        <td>{{ j.jam }}</td>
-        <td>
-            <a href="#">Edit</a> |
-            <a href="#">Hapus</a>
-        </td>
-    </tr>
-    {% endfor %}
-</table>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Jenis Bus</th>
+                        <th>Rute</th>
+                        <th>Jam</th>
+                        <th>Harga</th>
+                        <th>Kursi</th>
+                        <th>Operasi</th>
+                        <th>Status</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for j in jadwal %}
+                    <tr>
+                        <td>{{ j.id }}</td>
+                        <td>{{ j.nama_bus }}</td>
+                        <td>{{ j.rute_detail.strip('|').replace('|', ' → ') }}</td>
+                        <td>{{ j.jam_berangkat }}{% if j.jam_tiba %} - {{ j.jam_tiba }}{% endif %}</td>
+                        <td>Rp {{ "{:,}".format(j.harga) }}</td>
+                        <td>{{ j.total_kursi }}</td>
+                        <td><span class="badge badge-daily">Setiap Hari</span></td>
+                        <td>
+                            {% if j.status == 'Aktif' %}
+                            <span class="badge badge-aktif">Aktif</span>
+                            {% else %}
+                            <span class="badge badge-nonaktif">Nonaktif</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button class="btn-edit"
+                                onclick='openEditModal({{ j.id }}, "{{ j.nama_bus }}", "{{ j.rute_detail }}", "{{ j.jam_berangkat }}", "{{ j.jam_tiba or "" }}", {{ j.harga }}, {{ j.total_kursi }}, "{{ j.status }}")'>Edit</button>
+                            <form method="POST" action="{{ url_for('main.admin_jadwal_hapus', jadwal_id=j.id) }}"
+                                style="display:inline;"
+                                onsubmit="return confirm('Hapus rute ini? Semua data kursi harian juga akan dihapus.')">
+                                <button type="submit" class="btn-delete">Hapus</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="9" class="empty">Belum ada rute bus. Klik "+ Tambah Rute Bus" untuk menambahkan.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-<br>
-<a href="/admin/dashboard">Kembali ke Dashboard</a>
+    <div id="jadwalModal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 id="modalTitle">Tambah Rute Bus Harian</h3>
+            <form id="jadwalForm" method="POST" action="{{ url_for('main.admin_jadwal_tambah') }}">
+                <div class="form-group">
+                    <label>Jenis Bus</label>
+                    <select name="nama_bus" id="f_nama_bus" required>
+                        <option value="">-- Pilih Jenis Bus --</option>
+                        <option value="Sleeper">Sleeper</option>
+                        <option value="Tronton">Tronton</option>
+                        <option value="VIP Class">VIP Class</option>
+                        <option value="Double Decker">Double Decker</option>
+                        <option value="Suite Class">Suite Class</option>
+                        <option value="Executive">Executive</option>
+                        <option value="Economy">Economy</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group" style="flex: 100%;">
+                        <label>Rute Kota (Urutan Perjalanan)</label>
+                        <div id="rute-container" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;">
+                            <!-- Cities will be injected here -->
+                        </div>
+                        <button type="button" onclick="addCitySelect()" class="btn-add"
+                            style="margin-bottom:0; font-size: 13px; padding: 8px 16px;"><i class="fas fa-plus"></i>
+                            Tambah Kota</button>
+                        <input type="hidden" name="rute_detail" id="f_rute_detail" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Jam Berangkat</label>
+                        <input type="time" name="jam_berangkat" id="f_jam_berangkat" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Jam Tiba (opsional)</label>
+                        <input type="time" name="jam_tiba" id="f_jam_tiba">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Harga per Pemberhentian (Rp)</label>
+                        <input type="number" name="harga" id="f_harga" placeholder="Contoh: 50000" required min="0">
+                        <div class="hint">Harga dikalikan berdasarkan jarak kota yang dilewati user.</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Total Kursi</label>
+                        <input type="number" name="total_kursi" id="f_total_kursi" value="40" required min="1"
+                            max="100">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select name="status" id="f_status">
+                        <option value="Aktif">Aktif</option>
+                        <option value="Nonaktif">Nonaktif</option>
+                    </select>
+                    <div class="hint">Bus dengan status "Aktif" akan tersedia untuk dipesan setiap hari.</div>
+                </div>
 
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal()">Batal</button>
+                    <button type="submit" class="btn-save">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const modal = document.getElementById('jadwalModal');
+        const form = document.getElementById('jadwalForm');
+        const title = document.getElementById('modalTitle');
+
+        const CITIES = [
+            "Jakarta", "Bogor", "Depok", "Tangerang", "Bekasi", "Bandung", "Cirebon", "Garut", "Tasikmalaya", "Semarang", "Magelang", "Yogyakarta", "Solo", "Madiun", "Kediri", "Malang", "Surabaya", "Jember", "Banyuwangi"
+        ].sort();
+
+        function renderCitySelect(value = "") {
+            let options = `<option value="">-- Pilih Kota --</option>`;
+            CITIES.forEach(c => {
+                options += `<option value="${c}" ${c === value ? 'selected' : ''}>${c}</option>`;
+            });
+            return `
+            <div style="display:flex; gap:5px; align-items:center; background:#f0f2f5; padding:5px; border-radius:4px;">
+                <select class="city-select" style="min-width: 140px; border: 1px solid #ccc; padding: 5px; border-radius:4px;" required onchange="updateRuteDetail()">
+                    ${options}
+                </select>
+                <button type="button" style="background:#dc3545; color:white; border:none; padding:5px 8px; border-radius:4px; cursor:pointer;" onclick="this.parentElement.remove(); updateRuteDetail();">X</button>
+            </div>
+        `;
+        }
+
+        function addCitySelect(value = "") {
+            document.getElementById('rute-container').insertAdjacentHTML('beforeend', renderCitySelect(value));
+            updateRuteDetail();
+        }
+
+        function updateRuteDetail() {
+            const selects = document.querySelectorAll('.city-select');
+            let cities = [];
+            selects.forEach(s => {
+                if (s.value) cities.push(s.value);
+            });
+            document.getElementById('f_rute_detail').value = cities.length > 0 ? "|" + cities.join("|") + "|" : "";
+        }
+
+        form.addEventListener('submit', function (e) {
+            updateRuteDetail();
+            if (document.getElementById('f_rute_detail').value.split('|').length < 4) {
+                e.preventDefault();
+                alert("Rute minimal harus melewati 2 kota!");
+            }
+        });
+
+        function openAddModal() {
+            title.textContent = 'Tambah Rute Bus Harian';
+            form.action = "{{ url_for('main.admin_jadwal_tambah') }}";
+            form.reset();
+            document.getElementById('rute-container').innerHTML = '';
+            addCitySelect();
+            addCitySelect();
+            document.getElementById('f_total_kursi').value = 40;
+            modal.classList.add('active');
+        }
+
+        function openEditModal(id, nama_bus, rute_detail, jam_berangkat, jam_tiba, harga, total_kursi, status) {
+            title.textContent = 'Edit Rute Bus';
+            form.action = "/admin/jadwal/edit/" + id;
+            document.getElementById('f_nama_bus').value = nama_bus;
+
+            document.getElementById('rute-container').innerHTML = '';
+            if (rute_detail) {
+                const cities = rute_detail.split('|').filter(c => c.trim() !== '');
+                cities.forEach(c => addCitySelect(c));
+            }
+
+            document.getElementById('f_jam_berangkat').value = jam_berangkat;
+            document.getElementById('f_jam_tiba').value = jam_tiba;
+            document.getElementById('f_harga').value = harga;
+            document.getElementById('f_total_kursi').value = total_kursi;
+            document.getElementById('f_status').value = status;
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+        }
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+    </script>
 </body>
+
 </html>

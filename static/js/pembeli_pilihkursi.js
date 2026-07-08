@@ -61,14 +61,77 @@ let state = {
 // ============================================
 // INISIALISASI
 // ============================================
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     console.log('🚌 Halaman pilih kursi bus siap!');
     
     // Ambil data bus yang dipilih dari halaman cari tiket
     loadSelectedBusData();
+    setupDynamicLayout();
+    await fetchOccupiedSeats();
+    
     initializeApp();
     setupEventListeners();
 });
+
+function setupDynamicLayout() {
+    const busName = state.selectedBusName;
+    
+    if (busName.toLowerCase().includes("sleeper") || busName.toLowerCase().includes("suite")) {
+        busConfig.totalRows = 10;
+        busConfig.seatsPerRow = 2; 
+        busConfig.layout = ['A', 'B']; 
+        busConfig.aisleAfter = 0; // A - lorong - B
+        busConfig.vipRows = [];
+        busConfig.nearToiletRows = [10];
+    } else if (busName.toLowerCase().includes("tronton")) {
+        busConfig.totalRows = 7;
+        busConfig.seatsPerRow = 4; // 28 kursi
+        busConfig.layout = ['A', 'B', 'C', 'D'];
+        busConfig.aisleAfter = 1; // A, B - lorong - C, D
+        busConfig.vipRows = [1];
+        busConfig.nearToiletRows = [7];
+    } else if (busName.toLowerCase().includes("double decker") || busName.toLowerCase().includes("executive")) {
+        busConfig.totalRows = 10;
+        busConfig.seatsPerRow = 3; // 30 kursi
+        busConfig.layout = ['A', 'B', 'C'];
+        busConfig.aisleAfter = 1; // A, B - lorong - C
+        busConfig.vipRows = [1, 2];
+        busConfig.nearToiletRows = [10];
+    } else {
+        // Default / VIP Class
+        busConfig.totalRows = 8;
+        busConfig.seatsPerRow = 4; // 32 kursi
+        busConfig.layout = ['A', 'B', 'C', 'D'];
+        busConfig.aisleAfter = 1; 
+        busConfig.vipRows = [1, 2];
+        busConfig.nearToiletRows = [8];
+    }
+}
+
+async function fetchOccupiedSeats() {
+    const bookingData = JSON.parse(sessionStorage.getItem('bookingData') || '{}');
+    const scheduleId = bookingData.scheduleId;
+    const date = bookingData.date;
+    
+    if (scheduleId && date) {
+        try {
+            const res = await fetch(`/api/jadwal/${scheduleId}/kursi?date=${date}`);
+            if (res.redirected) {
+                window.location.href = res.url;
+                return;
+            }
+            const data = await res.json();
+            if (data.success) {
+                busConfig.occupiedSeats = data.occupied_seats || [];
+            }
+        } catch (e) {
+            console.error('Failed to fetch occupied seats', e);
+            busConfig.occupiedSeats = [];
+        }
+    } else {
+        busConfig.occupiedSeats = [];
+    }
+}
 
 function loadSelectedBusData() {
     // Coba ambil dari sessionStorage (dari cari tiket)
@@ -77,9 +140,13 @@ function loadSelectedBusData() {
     
     // Set state dengan data yang sesuai
     state.selectedBusName = selectedBusName;
-    state.selectedBusPrice = busConfig.busTypes[selectedBusName]?.basePrice || 250000;
+    state.selectedBusPrice = bookingData.price || busConfig.busTypes[selectedBusName]?.basePrice || 250000;
     
-    console.log(`✅ Bus yang dipilih: ${selectedBusName}, Harga dasar: Rp ${state.selectedBusPrice.toLocaleString()}`);
+    if (bookingData.passengers) {
+        state.maxSeatsPerBooking = parseInt(bookingData.passengers);
+    }
+    
+    console.log(`✅ Bus yang dipilih: ${selectedBusName}, Harga dasar: ${formatCurrency(state.selectedBusPrice)}`);
 }
 
 function initializeApp() {
@@ -143,8 +210,9 @@ function createBusSeatRow(rowNumber) {
     const seatsContainer = document.createElement('div');
     seatsContainer.className = 'seats-in-row';
     
-    // BUS: 4 kursi per baris (A,B - lorong - C,D)
-    const seatLetters = ['A', 'B', 'C', 'D'];
+    // BUS Layout dinamis
+    const seatLetters = busConfig.layout || ['A', 'B', 'C', 'D'];
+    const aisleAfter = busConfig.aisleAfter !== undefined ? busConfig.aisleAfter : 1;
     
     for (let i = 0; i < busConfig.seatsPerRow; i++) {
         const seatLetter = seatLetters[i];
@@ -160,15 +228,15 @@ function createBusSeatRow(rowNumber) {
             seat: seatLetter,
             isVIP: busConfig.vipRows.includes(rowNumber),
             isNearToilet: busConfig.nearToiletRows.includes(rowNumber),
-            isWindowSeat: seatLetter === 'A' || seatLetter === 'D',
-            isAisleSeat: seatLetter === 'B' || seatLetter === 'C',
+            isWindowSeat: i === 0 || i === busConfig.seatsPerRow - 1,
+            isAisleSeat: i === aisleAfter || i === aisleAfter + 1,
             isOccupied: busConfig.occupiedSeats.includes(seatId),
             isSelected: false,
             price: calculateSeatPrice(rowNumber, seatLetter)
         };
         
-        // Tambah spacer antara kursi B dan C (lorong)
-        if (i === 1) {
+        // Tambah spacer lorong (aisle) di posisi yang tepat
+        if (i === aisleAfter) {
             const spacer = document.createElement('div');
             spacer.className = 'aisle-spacer';
             seatsContainer.appendChild(spacer);
@@ -180,25 +248,9 @@ function createBusSeatRow(rowNumber) {
 }
 
 function calculateSeatPrice(rowNumber, seatLetter) {
-    let price = state.selectedBusPrice;
-    
-    // Premium 30% untuk VIP rows (baris 1-2)
-    if (busConfig.vipRows.includes(rowNumber)) {
-        price = Math.round(price * 1.3);
-    }
-    
-    // Diskon 20% untuk kursi dekat toilet (baris 11-12)
-    if (busConfig.nearToiletRows.includes(rowNumber)) {
-        price = Math.round(price * 0.8);
-    }
-    
-    // Tambahan 10% untuk kursi jendela
-    const isWindowSeat = seatLetter === 'A' || seatLetter === 'D';
-    if (isWindowSeat) {
-        price = Math.round(price * 1.1);
-    }
-    
-    return price;
+    // Kembalikan harga dasar secara langsung tanpa modifier tambahan (VIP, toilet, jendela)
+    // agar sinkron 100% dengan harga dari halaman pencarian tiket.
+    return state.selectedBusPrice;
 }
 
 function createBusSeatElement(seatId, rowNumber, seatLetter) {
@@ -223,6 +275,10 @@ function createBusSeatElement(seatId, rowNumber, seatLetter) {
     labelSpan.className = 'seat-label';
     labelSpan.textContent = seatId;
     seatDiv.appendChild(labelSpan);
+    
+    // Animasi muncul berurutan berdasarkan baris (Staggered Entrance)
+    const delay = (rowNumber * 0.05) + 0.1;
+    seatDiv.style.animationDelay = `${delay}s`;
     
     // Tooltip sederhana tanpa harga
     if (isOccupied) {
@@ -255,7 +311,7 @@ function toggleSeatSelection(seatId) {
     
     if (index === -1) {
         if (state.selectedSeats.length >= state.maxSeatsPerBooking) {
-            showNotification(`Maksimal ${state.maxSeatsPerBooking} kursi per pemesanan`, 'warning');
+            showNotification(`Anda hanya memesan untuk ${state.maxSeatsPerBooking} penumpang`, 'warning');
             return;
         }
         
@@ -292,14 +348,34 @@ function renderBusInfo() {
     const busType = busConfig.busTypes[selectedBusName]?.type || "Regular";
     const busPrice = busConfig.busTypes[selectedBusName]?.basePrice || 250000;
     
-    // Update informasi bus
-    document.getElementById('operatorName').textContent = busConfig.busInfo.operator;
+    document.getElementById('operatorName').textContent = "Kresna";
     document.getElementById('busType').textContent = `${selectedBusName} - ${busType}`;
-    document.getElementById('busRoute').textContent = `${origin} → ${destination}`;
+    
+    // Update both the hidden busRoute and the visible timeline cities
+    const busRouteElem = document.getElementById('busRoute');
+    if (busRouteElem) busRouteElem.textContent = `${origin} → ${destination}`;
+    
+    const originCityElem = document.getElementById('originCity');
+    if (originCityElem) originCityElem.textContent = origin;
+    
+    const destCityElem = document.getElementById('destCity');
+    if (destCityElem) destCityElem.textContent = destination;
     document.getElementById('departureTime').textContent = bookingData.departureTime || busConfig.busInfo.departure;
     document.getElementById('arrivalTime').textContent = bookingData.arrivalTime || busConfig.busInfo.arrival;
     document.getElementById('travelDate').textContent = formatDateForDisplay(date);
     document.getElementById('busNumber').textContent = generateBusNumber(selectedBusName);
+    
+    const plateMap = {
+        'Sleeper': 'B 7001 KRN',
+        'Tronton': 'B 7002 KRN',
+        'VIP Class': 'B 7003 KRN',
+        'Double Decker': 'B 7004 KRN',
+        'Suite Class': 'B 7005 KRN',
+        'Executive': 'B 7006 KRN',
+        'Economy': 'B 7007 KRN'
+    };
+    const plateElem = document.getElementById('plateNumber');
+    if (plateElem) plateElem.textContent = plateMap[selectedBusName] || 'B 7777 KRN';
     
     // Update judul halaman
     const pageTitle = document.querySelector('.lead');
@@ -348,10 +424,9 @@ function updateSelectedSeatsList() {
     
     if (state.selectedSeats.length === 0) {
         container.innerHTML = `
-            <div class="text-center text-muted py-4">
-                <i class="fas fa-chair fa-2x mb-2"></i>
-                <p>Belum ada kursi yang dipilih</p>
-                <small>Klik kursi yang tersedia di atas</small>
+            <div class="empty-seat-hint">
+                <i class="fas fa-chair"></i>
+                <span>Belum ada kursi dipilih</span>
             </div>
         `;
         return;
@@ -359,16 +434,15 @@ function updateSelectedSeatsList() {
     
     container.innerHTML = state.selectedSeats.map(seatId => {
         const seat = state.seatMap[seatId];
-        const seatType = seat.isVIP ? 'VIP' : seat.isNearToilet ? 'Toilet' : 'Regular';
+        const seatType = seat.isVIP ? '⭐ VIP' : seat.isNearToilet ? '🚽 Near Toilet' : 'Regular';
         
         return `
-            <div class="d-inline-flex align-items-center bg-primary text-white rounded-pill px-3 py-2 m-1">
-                <span class="fw-bold me-2">${seatId}</span>
-                <button class="btn btn-sm btn-light text-danger p-1 ms-2" 
-                        onclick="removeSelectedSeat('${seatId}')" 
-                        title="Hapus kursi">
-                    <i class="fas fa-times"></i>
-                </button>
+            <div class="seat-badge-selected" style="cursor:default;">
+                ${seatId}
+                <span style="color: rgba(0,0,0,0.5); font-size:0.7rem; margin-left:4px;">${seatType}</span>
+                <button onclick="removeSelectedSeat('${seatId}')" 
+                        style="background:none;border:none;color:rgba(0,0,0,0.6);cursor:pointer;margin-left:6px;font-size:0.9rem;padding:0;line-height:1;"
+                        title="Hapus">&times;</button>
             </div>
         `;
     }).join('');
@@ -376,49 +450,42 @@ function updateSelectedSeatsList() {
 
 function updatePriceDetails() {
     let totalPrice = 0;
-    let regularCount = 0;
-    let vipCount = 0;
-    let nearToiletCount = 0;
+    let regularCount = 0, regularTotal = 0;
+    let vipCount = 0, vipTotal = 0;
     
     state.selectedSeats.forEach(seatId => {
         const seat = state.seatMap[seatId];
         totalPrice += seat.price;
-        
         if (seat.isVIP) {
             vipCount++;
-        } else if (seat.isNearToilet) {
-            nearToiletCount++;
+            vipTotal += seat.price;
         } else {
             regularCount++;
+            regularTotal += seat.price;
         }
     });
     
-    // Update tampilan
-    document.getElementById('regular-count').textContent = regularCount;
-    document.getElementById('vip-count').textContent = vipCount;
-    
-    // Hitung subtotal per kategori
-    const regularTotal = state.selectedSeats
-        .filter(seatId => !state.seatMap[seatId].isVIP && !state.seatMap[seatId].isNearToilet)
-        .reduce((total, seatId) => total + state.seatMap[seatId].price, 0);
-    
-    const vipTotal = state.selectedSeats
-        .filter(seatId => state.seatMap[seatId].isVIP)
-        .reduce((total, seatId) => total + state.seatMap[seatId].price, 0);
-    
-    document.getElementById('regular-total').textContent = formatCurrency(regularTotal);
-    document.getElementById('vip-total').textContent = formatCurrency(vipTotal);
+    // Update breakdown
+    const rcEl = document.getElementById('regular-count');
+    const rtEl = document.getElementById('regular-total');
+    const vcEl = document.getElementById('vip-count');
+    const vtEl = document.getElementById('vip-total');
+    if (rcEl) rcEl.textContent = regularCount;
+    if (rtEl) rtEl.textContent = formatCurrency(regularTotal);
+    if (vcEl) vcEl.textContent = vipCount;
+    if (vtEl) vtEl.textContent = formatCurrency(vipTotal);
     
     // Update total price
-    document.getElementById('total-price').textContent = formatCurrency(totalPrice);
+    const tpEl = document.getElementById('total-price');
+    if (tpEl) tpEl.textContent = formatCurrency(totalPrice);
     
-    // Update progress bar
+    // Update progress bar (support both Bootstrap and custom .progress-fill)
     const progress = (state.selectedSeats.length / state.maxSeatsPerBooking) * 100;
     const progressBar = document.getElementById('selectionProgress');
     const selectionCount = document.getElementById('selectionCount');
     
     if (progressBar) progressBar.style.width = `${progress}%`;
-    if (selectionCount) selectionCount.textContent = `${state.selectedSeats.length}/${state.maxSeatsPerBooking}`;
+    if (selectionCount) selectionCount.textContent = `${state.selectedSeats.length} / ${state.maxSeatsPerBooking} kursi`;
 }
 
 function updateConfirmButton() {
@@ -455,26 +522,28 @@ function handleConfirmation() {
     const totalPrice = calculateTotalPrice();
     
     Swal.fire({
-        title: 'Konfirmasi Pemilihan Kursi',
+        title: '<span style="color:#d4af37;font-family:serif;">Konfirmasi Kursi</span>',
+        background: '#111',
+        color: '#f8f9fa',
         html: `
-            <div style="text-align: left; font-size: 1rem;">
-                <p><strong>Bus:</strong> ${bookingData.busName || state.selectedBusName}</p>
-                <p><strong>Rute:</strong> ${bookingData.origin || 'Jakarta'} → ${bookingData.destination || 'Bandung'}</p>
-                <p><strong>Tanggal:</strong> ${formatDateForDisplay(bookingData.date)}</p>
-                <p><strong>Kursi Terpilih (${state.selectedSeats.length}):</strong><br>${state.selectedSeats.join(', ')}</p>
-                <hr>
-                <p style="font-size: 1.2rem; font-weight: bold; color: #007bff;">
-                    Total: ${formatCurrency(totalPrice)}
-                </p>
+            <div style="text-align: left; font-size: 0.95rem; color: #ccc;">
+                <div style="background:#0a0a0a;border:1px solid #222;border-radius:10px;padding:12px;margin-bottom:12px;">
+                    <p style="margin:4px 0;"><span style="color:#888;">Bus:</span> <strong style="color:#fff;">${bookingData.busName || state.selectedBusName}</strong></p>
+                    <p style="margin:4px 0;"><span style="color:#888;">Rute:</span> <strong style="color:#d4af37;">${bookingData.origin || 'Jakarta'} → ${bookingData.destination || 'Bandung'}</strong></p>
+                    <p style="margin:4px 0;"><span style="color:#888;">Tanggal:</span> <strong style="color:#fff;">${formatDateForDisplay(bookingData.date)}</strong></p>
+                    <p style="margin:4px 0;"><span style="color:#888;">Kursi (${state.selectedSeats.length}):</span> <strong style="color:#d4af37;">${state.selectedSeats.join(', ')}</strong></p>
+                </div>
+                <div style="text-align:center;font-size:1.4rem;font-weight:800;color:#d4af37;">
+                    ${formatCurrency(totalPrice)}
+                </div>
             </div>
         `,
-        icon: 'question',
         showCancelButton: true,
-        confirmButtonColor: '#007bff',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Ya, Lanjutkan',
+        confirmButtonColor: '#c9a227',
+        cancelButtonColor: '#333',
+        confirmButtonText: '✓ Ya, Lanjutkan',
         cancelButtonText: 'Batal',
-        width: '500px'
+        width: '420px'
     }).then((result) => {
         if (result.isConfirmed) {
             showNotification('Pemilihan kursi berhasil!', 'success');
@@ -492,7 +561,9 @@ function handleConfirmation() {
                           state.seatMap[seatId].isNearToilet ? 'Near Toilet' : 'Regular'
                 })),
                 totalPrice: totalPrice,
-                bookingDate: new Date().toISOString(),
+                transactionDate: new Date().toISOString(),
+                tanggalBerangkat: bookingData.date,
+                jamBerangkat: bookingData.departureTime,
                 passengerCount: document.getElementById('passengers')?.value || '1'
             };
             
@@ -617,7 +688,12 @@ function selectBestSeats() {
 // FUNGSI UTILITAS
 // ============================================
 function formatCurrency(amount) {
-    return 'Rp ' + amount.toLocaleString('id-ID');
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(amount);
 }
 
 function calculateTotalPrice() {

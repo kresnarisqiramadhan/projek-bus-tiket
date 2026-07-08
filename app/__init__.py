@@ -6,27 +6,6 @@ import os
 db = SQLAlchemy()
 login_manager = LoginManager()
 
-# =========================
-# USER LOADER (DI LUAR)
-# =========================
-from app.models import Pembeli, Admin, Agen
-
-@login_manager.user_loader
-def load_user(user_id):
-    user = Pembeli.query.get(int(user_id))
-    if user:
-        return user
-
-    user = Admin.query.get(int(user_id))
-    if user:
-        return user
-
-    user = Agen.query.get(int(user_id))
-    if user:
-        return user
-
-    return None
-
 
 # =========================
 # CREATE APP
@@ -45,15 +24,19 @@ def create_app():
     )
 
     app.config['SECRET_KEY'] = 'bus-ticket-online-secret-key-2024'
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///busticket.db'
+    # Menggunakan SQLite agar tidak perlu repot menyalakan XAMPP
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(project_root, 'app.db')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SESSION_COOKIE_NAME'] = 'kresna_bus_session'
+    app.config['PERMANENT_SESSION_LIFETIME'] = 86400 # 24 hours
 
     # init extensions
     db.init_app(app)
     login_manager.init_app(app)
 
-    # login config
+    # Login view default (untuk pembeli)
     login_manager.login_view = 'main.pembeli_login'
+    login_manager.login_message = 'Silakan login terlebih dahulu.'
     login_manager.login_message_category = 'info'
 
     # register blueprint
@@ -63,15 +46,36 @@ def create_app():
     # db init
     with app.app_context():
         db.create_all()
-        create_default_users()
+        _create_default_users()
 
     return app
 
 
 # =========================
+# USER LOADER — pakai prefix role-id, jadi tidak ambigu antar tabel
+# =========================
+@login_manager.user_loader
+def load_user(user_id):
+    from app.models import Pembeli, Admin, Agen
+    try:
+        prefix, real_id = user_id.split('-', 1)
+        real_id = int(real_id)
+
+        if prefix == 'pembeli':
+            return Pembeli.query.get(real_id)
+        elif prefix == 'admin':
+            return Admin.query.get(real_id)
+        elif prefix == 'agen':
+            return Agen.query.get(real_id)
+    except Exception as e:
+        print(f"[SYSTEM ERROR] load_user failed: {e}")
+    return None
+
+
+# =========================
 # DEFAULT USERS
 # =========================
-def create_default_users():
+def _create_default_users():
     from app.models import Admin, Agen, Pembeli
 
     try:

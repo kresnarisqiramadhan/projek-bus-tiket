@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('main.static', filename='css/pembeli_dashboard.css') }}">
+{% endblock %}
+{% block content %}
+<h2>Halo, {{ current_user.nama }}!</h2>
+<div class="search-box">
+    <h3>Mau pergi ke mana hari ini?</h3>
+    <a href="{{ url_for('main.cari_tiket') }}" class="btn">Cari Jadwal Bus</a>
+</div>
+{% endblock %}

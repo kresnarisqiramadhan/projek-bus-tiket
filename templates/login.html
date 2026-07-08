@@ -6,7 +6,8 @@
     <title>Login Pembeli - Bus Ticket Online</title>
 
     <!-- CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/pembeli_login.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}?v=1016">
 
     <!-- Font Awesome -->
     <link rel="stylesheet"
@@ -20,12 +21,16 @@
           href="{{ url_for('static', filename='img/favicon.ico') }}">
 
     <!-- JS -->
-    <script defer src="{{ url_for('static', filename='js/pembeli_login.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/login.js') }}"></script>
 </head>
 <body>
 
-    <!-- Background Animation -->
-    <div class="bg-animation"></div>
+    <!-- Animated typography removed per user request -->
+    <ul class="bg-slideshow">
+        <li><span></span></li>
+        <li><span></span></li>
+        <li><span></span></li>
+    </ul>
 
     <!-- Language Selector -->
     <div class="language-selector">
@@ -35,16 +40,25 @@
         </select>
     </div>
 
+    <!-- Founder Art (Left Side) -->
+    <div class="hero-art">
+        <img src="{{ url_for('static', filename='img/founder_line_art_transparent.png') }}" alt="Founder Art">
+        <div class="founder-text-wrapper">
+            <div class="founder-name">Kresna Risqi Ramadhan</div>
+            <div class="founder-title">Pendiri PT KRESNA PRIME MOBILITY</div>
+        </div>
+    </div>
+
     <!-- Login Container -->
     <div class="login-container">
 
-        <!-- Brand Header -->
-        <div class="brand-header">
-            <div class="brand-logo">
-                <i class="fas fa-bus"></i>
+        <!-- Header -->
+        <div class="login-header">
+            <div class="logo">
+                <img src="{{ url_for('static', filename='img/logo-kresna.jpg') }}" alt="Logo Kresna">
             </div>
-            <h1 class="brand-title">BusTicket Online</h1>
-            <p class="brand-subtitle">MASUK KE AKUN ANDA</p>
+            <h2>PT KRESNA PRIME MOBILITY</h2>
+            <p>Portal Pelanggan</p>
         </div>
 
         <!-- Flash Message (Flask) -->

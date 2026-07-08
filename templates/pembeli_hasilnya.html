@@ -14,33 +14,25 @@
     <p>Mohon tunggu sebentar</p>
 </div>
 
-<!-- Header -->
-<header class="header">
-    <div class="container">
+    <!-- Header -->
+    <header class="dashboard-header">
         <div class="header-content">
-            <div class="header-brand">
-                <h1>
-                    <i class="fas fa-bus"></i>
-                    Bus Ticket Online
-                </h1>
-                <p>Hasil Pencarian Tiket Bus</p>
-            </div>
+            <a href="{{ url_for('main.index') }}" class="logo">
+                <img src="{{ url_for('static', filename='img/logo-kresna.jpg') }}" alt="Logo Kresna">
+                <h1>PT KRESNA PRIME <span>MOBILITY</span></h1>
+            </a>
             
-            <div class="header-actions">
-                <div class="user-info">
-                    <div class="user-avatar">
-                        {{ current_user.nama[0] if current_user.nama else 'U' }}
-                    </div>
-                    <span>{{ current_user.nama if current_user.nama else 'User' }}</span>
+            <div class="user-menu">
+                <div class="welcome-text">
+                    <span class="greeting" style="display: block; font-size: 0.8rem; color: #aaa;">Selamat datang,</span>
+                    <span class="user-name" style="color: #d4af37; font-weight: bold; font-size: 0.95rem;">{{ current_user.nama if current_user else nama }}</span>
                 </div>
-                
-                <button id="backBtn" class="btn btn-back">
-                    <i class="fas fa-arrow-left"></i> Kembali
-                </button>
+                <a href="{{ url_for('main.logout') }}" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i> Keluar
+                </a>
             </div>
         </div>
-    </div>
-</header>
+    </header>
 
 <main class="container">
     <!-- Page Header -->

@@ -14,6 +14,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // 4. Add click effects to menu cards
     setupMenuCards();
     
+    // 5. Setup Dashboard Search
+    setupDashboardSearch();
+    
     console.log('🎯 Dashboard JS initialized');
 });
 
@@ -99,6 +102,43 @@ function showNotification(message, type = 'info') {
     setTimeout(() => {
         notification.remove();
     }, 3000);
+}
+
+function setupDashboardSearch() {
+    const form = document.getElementById('dashboardSearchForm');
+    if (form) {
+        const dateInput = document.getElementById('dashDate');
+        if (dateInput) {
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.min = today;
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            dateInput.value = tomorrow.toISOString().split('T')[0];
+        }
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const origin = document.getElementById('dashOrigin').value;
+            const destination = document.getElementById('dashDestination').value;
+            const date = document.getElementById('dashDate').value;
+            const passengers = document.getElementById('dashPassengers').value;
+
+            if (!origin || !destination || !date) {
+                showNotification('Harap isi semua kolom pencarian!', 'error');
+                return;
+            }
+
+            if (origin === destination) {
+                showNotification('Kota asal dan tujuan tidak boleh sama!', 'error');
+                return;
+            }
+
+            // Redirect to search page with parameters
+            const url = `/pembeli/cari?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&date=${date}&passengers=${passengers}`;
+            window.location.href = url;
+        });
+        console.log('🔍 Dashboard search initialized');
+    }
 }
 
 // Add CSS animations

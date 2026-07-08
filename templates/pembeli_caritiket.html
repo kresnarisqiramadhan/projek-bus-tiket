@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cari Tiket Bus - BusTicket Online</title>
+    <title>Cari Tiket Bus - PT Kresna Prime Mobility</title>
     
     <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/pembeli_caritiket.css') }}">
     
     <!-- Font Awesome -->
@@ -13,136 +14,245 @@
 </head>
 <body>
     <!-- Header -->
-    <header class="header">
+    <header class="dashboard-header">
         <div class="header-content">
-            <div class="logo">
-                <i class="fas fa-bus"></i>
-                <h1>BusTicket<span>Online</span></h1>
-            </div>
+            <a href="{{ url_for('main.index') }}" class="logo" style="text-decoration: none;">
+                <img src="{{ url_for('static', filename='img/logo-kresna.jpg') }}" alt="Logo Kresna">
+                <h1>PT KRESNA PRIME <span style="color: #d4af37;">MOBILITY</span></h1>
+            </a>
             
-            <div class="user-info">
+            <div class="user-menu">
                 <div class="welcome-text">
-                    <div class="greeting">Selamat datang,</div>
-                    <div class="user-name">{{ nama }}</div>
+                    <span class="greeting" style="display: block; font-size: 0.8rem; color: #aaa;">Selamat datang,</span>
+                    <span class="user-name" style="color: #d4af37; font-weight: bold; font-size: 0.95rem;">{{ current_user.nama if current_user else nama }}</span>
                 </div>
                 <a href="{{ url_for('main.logout') }}" class="logout-btn">
-                    <i class="fas fa-sign-out-alt"></i> Logout
+                    <i class="fas fa-sign-out-alt"></i> Keluar
                 </a>
             </div>
         </div>
     </header>
 
     <!-- Main Content -->
-    <main class="container">
-        <!-- Breadcrumb -->
-        <nav class="breadcrumb">
-            <ul>
-                <li>
-                    <a href="{{ url_for('main.pembeli_dashboard') }}">
-                        <i class="fas fa-home"></i> Dashboard
-                    </a>
-                </li>
-                <li class="separator">/</li>
-                <li class="active">
-                    <i class="fas fa-search"></i> Cari Tiket
-                </li>
-            </ul>
-        </nav>
+    <main>
+        <!-- HERO BANNER dengan Batik Background + Search Widget -->
+        <section class="hero-banner">
+            <div class="hero-flex-container">
+                <div class="hero-content">
+                    <h2>Perjalanan Premium<br><span style="color:#d4af37;">Masa Depan</span></h2>
+                    <p class="hero-subtitle">Nikmati kenyamanan sleeper bus bintang lima layaknya kabin pesawat First Class, dirancang khusus untuk privasi dan kenyamanan Anda.</p>
+                </div>
+                <div class="hero-promo">
+                    <div class="promo-badge">
+                        <div class="promo-text-small">CASHBACK HINGGA</div>
+                        <div class="promo-text-large"><span class="percent">%</span>50</div>
+                        <div class="promo-text-cashback">Khusus Member VIP</div>
+                    </div>
+                </div>
+            </div>
 
-        <!-- Search Form -->
-        <section class="search-card">
-            <h2><i class="fas fa-search"></i> Cari Tiket Bus</h2>
-            
-            <form id="searchForm" class="search-form">
-                <div class="form-group">
-                    <label for="origin"><i class="fas fa-map-marker-alt"></i> Kota Asal</label>
-                    <select id="origin" name="origin" required>
-                        <option value="">Pilih Kota Asal</option>
-                        <option value="Jakarta">Jakarta</option>
-                        <option value="Bandung">Bandung</option>
-                        <option value="Surabaya">Surabaya</option>
-                        <option value="Yogyakarta">Yogyakarta</option>
-                        <option value="Semarang">Semarang</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="destination"><i class="fas fa-map-marker-alt"></i> Kota Tujuan</label>
-                    <select id="destination" name="destination" required>
-                        <option value="">Pilih Kota Tujuan</option>
-                        <option value="Jakarta">Jakarta</option>
-                        <option value="Bandung">Bandung</option>
-                        <option value="Surabaya">Surabaya</option>
-                        <option value="Yogyakarta">Yogyakarta</option>
-                        <option value="Semarang">Semarang</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="departureDate"><i class="fas fa-calendar-alt"></i> Tanggal</label>
-                    <input type="date" id="departureDate" name="departureDate" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="passengers"><i class="fas fa-users"></i> Penumpang</label>
-                    <select id="passengers" name="passengers">
-                        <option value="1">1 Orang</option>
-                        <option value="2" selected>2 Orang</option>
-                        <option value="3">3 Orang</option>
-                        <option value="4">4 Orang</option>
-                        <option value="5">5 Orang</option>
-                    </select>
-                </div>
-                
-                <button type="submit" class="search-btn">
-                    <i class="fas fa-search"></i> Cari Tiket
-                </button>
-            </form>
-            
-            <!-- Armada Perusahaan -->
+            <!-- RedBus Style Search Widget Glassmorphism -->
+            <div class="search-widget-container">
+                <form id="searchForm" class="rb-search-form">
+                    <div class="rb-inputs-row">
+                        <!-- Kota Asal -->
+                        <div class="rb-input-group">
+                            <i class="fas fa-bus"></i>
+                            <div class="rb-input-wrapper">
+                                <label for="origin">DARI</label>
+                                <input type="text" id="origin" name="origin" 
+                                       placeholder="Ketik kota asal..." 
+                                       list="origin-list" 
+                                       autocomplete="off" required>
+                                <datalist id="origin-list">
+                                    <option value="Jakarta">
+                                    <option value="Bandung">
+                                    <option value="Surabaya">
+                                    <option value="Yogyakarta">
+                                    <option value="Semarang">
+                                    <option value="Malang">
+                                    <option value="Banyuwangi">
+                                    <option value="Madiun">
+                                    <option value="Solo">
+                                    <option value="Purwokerto">
+                                    <option value="Bogor">
+                                    <option value="Bekasi">
+                                    <option value="Cirebon">
+                                    <option value="Tasikmalaya">
+                                    <option value="Cilacap">
+                                    <option value="Jember">
+                                    <option value="Kediri">
+                                    <option value="Blitar">
+                                    <option value="Mojokerto">
+                                    <option value="Pasuruan">
+                                    <option value="Probolinggo">
+                                    <option value="Tegal">
+                                    <option value="Pekalongan">
+                                    <option value="Salatiga">
+                                </datalist>
+                            </div>
+                        </div>
+
+                        <!-- Tombol Tukar -->
+                        <div class="rb-divider">
+                            <button type="button" class="swap-btn" title="Tukar Kota" onclick="let o=document.getElementById('origin'),d=document.getElementById('destination'),t=o.value;o.value=d.value;d.value=t;">
+                                <i class="fas fa-exchange-alt"></i>
+                            </button>
+                        </div>
+
+                        <!-- Kota Tujuan -->
+                        <div class="rb-input-group">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <div class="rb-input-wrapper">
+                                <label for="destination">KE</label>
+                                <input type="text" id="destination" name="destination" 
+                                       placeholder="Ketik kota tujuan..." 
+                                       list="destination-list" 
+                                       autocomplete="off" required>
+                                <datalist id="destination-list">
+                                    <option value="Jakarta">
+                                    <option value="Bandung">
+                                    <option value="Surabaya">
+                                    <option value="Yogyakarta">
+                                    <option value="Semarang">
+                                    <option value="Malang">
+                                    <option value="Banyuwangi">
+                                    <option value="Madiun">
+                                    <option value="Solo">
+                                    <option value="Purwokerto">
+                                    <option value="Bogor">
+                                    <option value="Bekasi">
+                                    <option value="Cirebon">
+                                    <option value="Tasikmalaya">
+                                    <option value="Cilacap">
+                                    <option value="Jember">
+                                    <option value="Kediri">
+                                    <option value="Blitar">
+                                    <option value="Mojokerto">
+                                    <option value="Pasuruan">
+                                    <option value="Probolinggo">
+                                    <option value="Tegal">
+                                    <option value="Pekalongan">
+                                    <option value="Salatiga">
+                                </datalist>
+                            </div>
+                        </div>
+
+                        <div class="rb-divider"></div>
+
+                        <!-- Tanggal -->
+                        <div class="rb-input-group">
+                            <i class="far fa-calendar-alt"></i>
+                            <div class="rb-input-wrapper">
+                                <label for="departureDate">TANGGAL BERANGKAT</label>
+                                <input type="date" id="departureDate" name="departureDate" required>
+                            </div>
+                        </div>
+
+                        <div class="rb-divider"></div>
+
+                        <!-- Penumpang -->
+                        <div class="rb-input-group">
+                            <i class="fas fa-user-friends"></i>
+                            <div class="rb-input-wrapper">
+                                <label for="passengers">PENUMPANG</label>
+                                <select id="passengers" name="passengers">
+                                    <option value="1">1 Penumpang</option>
+                                    <option value="2" selected>2 Penumpang</option>
+                                    <option value="3">3 Penumpang</option>
+                                    <option value="4">4 Penumpang</option>
+                                    <option value="5">5 Penumpang</option>
+                                    <option value="6">6 Penumpang</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Tombol Search Protruding -->
+                    <button type="submit" id="searchBtn" class="rb-search-btn">
+                        <i class="fas fa-search"></i> CARI TIKET
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Konten di bawah Hero -->
+        <div class="container">
+
+
+            <!-- Armada Kami -->
             <div class="company-info">
                 <h3><i class="fas fa-bus-alt"></i> Armada Kami</h3>
                 <div class="fleet-grid">
-                    <!-- Data akan diisi oleh JavaScript -->
+                    <!-- Diisi otomatis oleh loadArmada() di JS -->
                 </div>
             </div>
-        </section>
 
-        <!-- Results Section -->
-        <section class="results-card">
-            <div class="results-header">
-                <h2><i class="fas fa-bus-alt"></i> Jadwal Tersedia</h2>
-                <div class="results-count" id="resultsCount">Silakan pilih rute terlebih dahulu</div>
-            </div>
+            <!-- Results Section -->
+            <section class="results-card">
+                <div class="results-header">
+                    <h2><i class="fas fa-bus-alt"></i> Hasil Pencarian</h2>
+                    <div class="results-count" id="resultsCount">Pilih rute terlebih dahulu</div>
+                </div>
 
-            <!-- Loading State -->
-            <div id="loading" class="loading">
-                <i class="fas fa-spinner"></i>
-                <h3>Mencari jadwal...</h3>
-                <p>Harap tunggu sebentar</p>
-            </div>
+                <!-- Filter Jadwal -->
+                <div class="schedule-filter" id="scheduleFilter" style="display: none;">
+                    <button class="filter-btn active" data-time="all">
+                        <i class="fas fa-clock"></i> Semua
+                    </button>
+                    <button class="filter-btn" data-time="morning">
+                        <i class="fas fa-sun"></i> Pagi (06:00 - 11:59)
+                    </button>
+                    <button class="filter-btn" data-time="afternoon">
+                        <i class="fas fa-sun"></i> Siang (12:00 - 17:59)
+                    </button>
+                    <button class="filter-btn" data-time="evening">
+                        <i class="fas fa-moon"></i> Malam (18:00 - 23:59)
+                    </button>
+                    <button class="filter-btn" data-time="night">
+                        <i class="fas fa-star"></i> Dini Hari (00:00 - 05:59)
+                    </button>
+                </div>
 
-            <!-- No Results State -->
-            <div id="noResults" class="no-results">
-                <i class="fas fa-search"></i>
-                <h3>Belum ada pencarian</h3>
-                <p>Silakan pilih kota asal, tujuan, dan tanggal</p>
-            </div>
+                <!-- Loading State -->
+                <div id="loading" class="loading" style="display: none;">
+                    <i class="fas fa-spinner"></i>
+                    <h3>Mencari tiket...</h3>
+                    <p>Harap tunggu sebentar</p>
+                </div>
 
-            <!-- Results List -->
-            <div id="searchResults" class="bus-list" style="display: none;">
-                <!-- Bus cards akan dimasukkan di sini oleh JavaScript -->
-                <div id="busList"></div>
-            </div>
-        </section>
+                <!-- Tidak Ada Hasil -->
+                <div id="noResults" class="no-results" style="display: none;">
+                    <i class="fas fa-search"></i>
+                    <h3>Tidak ada tiket ditemukan</h3>
+                    <p>Coba ubah kriteria pencarian Anda atau pilih tanggal lain</p>
+                </div>
+
+                <!-- Daftar Hasil -->
+                <div id="searchResults" class="bus-list" style="display: none;">
+                    <div id="busList"></div>
+                    
+                    <!-- Info Tambahan -->
+                    <div class="additional-info">
+                        <div class="info-card">
+                            <i class="fas fa-info-circle"></i>
+                            <div>
+                                <h4>Informasi Penting</h4>
+                                <p>• Harga sudah termasuk PPN 10%</p>
+                                <p>• Check-in 30 menit sebelum keberangkatan</p>
+                                <p>• Pembatalan max 2 jam sebelum keberangkatan</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
     </main>
 
     <!-- Footer -->
     <footer class="footer">
-        <p>&copy; 2024 BusTicket Online - Sistem Pemesanan Tiket Bus</p>
-        <p style="margin-top: 5px; font-size: 0.8rem;">
-            <i class="fas fa-phone"></i> 0812-3456-7890 &nbsp;|&nbsp;
-            <i class="fas fa-envelope"></i> info@busticket.com
+        <p>&copy; 2024 PT Kresna Prime Mobility. Sistem Pemesanan Tiket Bus Online.</p>
+        <p style="margin-top: 5px; font-size: 0.8rem; opacity: 0.7;">
+            <i class="fas fa-shield-alt"></i> Transaksi Aman & Terjamin
         </p>
     </footer>
 

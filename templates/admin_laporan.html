@@ -2,44 +2,186 @@
 <html>
 <head>
     <title>Laporan Admin</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: var(--bg-main); padding-bottom: 50px; }
+        .header { background: linear-gradient(135deg, var(--primary-color), var(--primary-hover)); color: white; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-sm); }
+        .header h2 { font-size: 20px; color: white; margin: 0; }
+        .back-link { color: white; text-decoration: none; font-size: 14px; opacity: 0.9; display: flex; align-items: center; gap: 8px; font-weight: 500; }
+        .back-link:hover { opacity: 1; transform: translateX(-2px); }
+        .container { max-width: 1300px; margin: 30px auto; padding: 0 20px; }
+        
+        .card { background: var(--bg-card); padding: 24px; border-radius: var(--radius-lg); margin-bottom: 24px; box-shadow: var(--shadow-md); border: 1px solid var(--border-color); display: flex; justify-content: space-around; }
+        .card h3 { color: var(--text-primary); font-size: 18px; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .card h3 span { font-size: 24px; color: var(--primary-color); font-weight: 800; }
+        
+        .table-wrap { background: var(--bg-card); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); overflow: auto; border: 1px solid var(--border-color); }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; white-space: nowrap; }
+        th, td { border-bottom: 1px solid var(--border-color); padding: 14px 16px; text-align: left; }
+        th { background: var(--bg-main); color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid var(--border-color); }
+        tbody tr { transition: background var(--transition-fast); }
+        tbody tr:hover { background: var(--primary-light); }
+        
+        .alert { padding: 12px 20px; border-radius: var(--radius-md); margin-bottom: 20px; font-size: 14px; box-shadow: var(--shadow-sm); }
+        .alert-success { background: var(--success-bg); color: var(--success-hover); border-left: 4px solid var(--success-color); }
+        .alert-error { background: var(--danger-bg); color: var(--danger-hover); border-left: 4px solid var(--danger-color); }
+        
+        .badge { padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+        .badge-lunas { background: var(--success-bg); color: var(--success-hover); }
+        .badge-ditolak { background: var(--danger-bg); color: var(--danger-hover); }
+        .badge-menunggu { background: var(--warning-bg); color: var(--warning-color); }
+        
+        .btn-sm { border: none; padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 12px; font-weight: 600; transition: all var(--transition-fast); display: inline-flex; align-items: center; gap: 5px; }
+        .btn-info { background: var(--secondary-color); color: white; }
+        .btn-info:hover { background: var(--secondary-hover); }
+        .btn-success { background: var(--success-color); color: white; }
+        .btn-success:hover { background: var(--success-hover); }
+        .btn-danger { background: var(--danger-color); color: white; }
+        .btn-danger:hover { background: var(--danger-hover); }
+    </style>
 </head>
 <body>
 
-<h2>Laporan Sistem</h2>
+<!-- Navbar -->
+<nav class="top-navbar">
+    <a href="{{ url_for('main.admin_dashboard') }}" class="nav-brand">
+        <img src="{{ url_for('static', filename='img/logo-kresna.jpg') }}" alt="Logo Kresna" style="height: 40px; object-fit: contain;">
+        <span>PT KRESNA PRIME MOBILITY</span>
+    </a>
+    <div class="nav-links">
+        <a href="{{ url_for('main.admin_dashboard') }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="{{ url_for('main.admin_jadwal') }}"><i class="fas fa-calendar-alt"></i> Kelola Jadwal</a>
+        <a href="{{ url_for('main.admin_laporan') }}" class="active"><i class="fas fa-chart-line"></i> Laporan</a>
+        <a href="{{ url_for('main.logout') }}" class="nav-logout" onclick="return confirm('Apakah Anda yakin ingin keluar?')"><i class="fas fa-sign-out-alt"></i> Keluar</a>
+    </div>
+</nav>
 
-<h3>Ringkasan Data</h3>
-<ul>
-    <li>Total Pengguna: <b>{{ total_pengguna }}</b></li>
-    <li>Total Pembeli: <b>{{ total_pembeli }}</b></li>
-    <li>Total Agen: <b>{{ total_agen }}</b></li>
-    <li>Total Jadwal Bus: <b>{{ total_jadwal }}</b></li>
-    <li>Total Transaksi: <b>{{ total_transaksi }}</b></li>
-</ul>
+<div class="container" style="margin-top: 30px;">
+    <div style="margin-bottom: 20px;">
+        <h2 style="color: var(--primary-color);"><i class="fas fa-chart-line"></i> Laporan Pembayaran Tiket Bus</h2>
+    </div>
 
-<hr>
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
 
-<h3>Daftar Transaksi Terakhir</h3>
+<div class="card">
+    <h3>Total Transaksi <span>{{ total_transaksi }}</span></h3>
+    <div style="width: 1px; background: var(--border-color);"></div>
+    <h3>Total Pendapatan <span>Rp {{ "{:,.0f}".format(total_pendapatan) }}</span></h3>
+</div>
 
-<table border="1" cellpadding="5">
-    <tr>
-        <th>ID Transaksi</th>
-        <th>Nama Pembeli</th>
-        <th>Bus</th>
-        <th>Harga</th>
-    </tr>
+<div class="table-wrap">
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Kode Transaksi</th>
+            <th>Nama Pembeli</th>
+            <th>Email</th>
+            <th>Bus</th>
+            <th>Asal</th>
+            <th>Tujuan</th>
+            <th>Kursi</th>
+            <th>Subtotal</th>
+            <th>Biaya Layanan</th>
+            <th>Total</th>
+            <th>Metode Bayar</th>
+            <th>Bukti</th>
+            <th>Status</th>
+            <th>Aksi</th>
+        </tr>
+    </thead>
 
-    {% for t in transaksi %}
-    <tr>
-        <td>{{ t.id }}</td>
-        <td>{{ t.nama }}</td>
-        <td>{{ t.bus }}</td>
-        <td>Rp {{ t.harga }}</td>
-    </tr>
-    {% endfor %}
+    <tbody>
+        {% for bayar in pembayaran %}
+        <tr>
+            <td>{{ bayar.id }}</td>
+            <td>{{ bayar.transaction_id }}</td>
+            <td>{{ bayar.nama_pembeli }}</td>
+            <td>{{ bayar.email_pembeli }}</td>
+            <td>{{ bayar.bus }}</td>
+            <td>{{ bayar.asal }}</td>
+            <td>{{ bayar.tujuan }}</td>
+            <td>{{ bayar.kursi }}</td>
+            <td>Rp {{ "{:,}".format(bayar.subtotal or 0) }}</td>
+            <td>Rp {{ "{:,}".format(bayar.biaya_layanan or 0) }}</td>
+            <td><strong>Rp {{ "{:,}".format(bayar.total or 0) }}</strong></td>
+            <td>{{ bayar.metode_pembayaran }}</td>
+            <td style="text-align:center;">
+                {% if bayar.bukti_pembayaran %}
+                    <button type="button" class="btn-sm btn-info" onclick="showBukti('{{ url_for('static', filename='uploads/' ~ bayar.bukti_pembayaran) }}')"><i class="fas fa-eye"></i> Lihat Bukti</button>
+                {% else %}
+                    <span style="color: var(--text-muted);">Tidak ada</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if bayar.status == 'Lunas' %}
+                    <span class="badge badge-lunas">{{ bayar.status }}</span>
+                {% elif bayar.status == 'Ditolak' %}
+                    <span class="badge badge-ditolak">{{ bayar.status }}</span>
+                {% else %}
+                    <span class="badge badge-menunggu">{{ bayar.status }}</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if bayar.status == 'Menunggu Verifikasi' %}
+                <div style="display:flex; gap:5px;">
+                    <form method="POST" action="{{ url_for('main.admin_verifikasi_bayar', bayar_id=bayar.id, aksi='lunas') }}">
+                        <button type="submit" class="btn-sm btn-success"><i class="fas fa-check"></i> Setujui</button>
+                    </form>
+                    <form method="POST" action="{{ url_for('main.admin_verifikasi_bayar', bayar_id=bayar.id, aksi='tolak') }}">
+                        <button type="submit" class="btn-sm btn-danger"><i class="fas fa-times"></i> Tolak</button>
+                    </form>
+                </div>
+                {% else %}
+                <span style="color: var(--text-muted);">-</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="15" style="text-align:center; padding: 40px; color: var(--text-muted);">Belum ada data pembayaran</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr style="background:var(--bg-main); font-weight:bold; color:var(--text-primary);">
+            <td colspan="10" style="text-align:right;">TOTAL PENDAPATAN (Status Lunas):</td>
+            <td colspan="5" style="color:var(--success-color); font-size:15px;">Rp {{ "{:,.0f}".format(total_pendapatan) }}</td>
+        </tr>
+    </tfoot>
 </table>
+</div>
 
-<br>
-<a href="/admin/dashboard">Kembali ke Dashboard</a>
+</div> <!-- end container -->
+<div id="buktiModal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100%; height:100%; overflow:auto; background-color:rgba(0,0,0,0.8);">
+    <span onclick="document.getElementById('buktiModal').style.display='none'" style="position:absolute; top:20px; right:35px; color:#f1f1f1; font-size:40px; font-weight:bold; cursor:pointer;">&times;</span>
+    <img class="modal-content" id="imgBukti" style="margin:auto; display:block; width:auto; max-width:90%; max-height:80vh; margin-top:50px; border-radius:8px; border:3px solid white;">
+</div>
+
+<script>
+function showBukti(url) {
+    var modal = document.getElementById('buktiModal');
+    var img = document.getElementById('imgBukti');
+    modal.style.display = "block";
+    img.src = url;
+}
+// Tutup jika klik di luar gambar
+window.onclick = function(event) {
+    var modal = document.getElementById('buktiModal');
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
+</script>
 
 </body>
 </html>
